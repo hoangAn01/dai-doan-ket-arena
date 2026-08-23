@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Users,
   Sparkles,
@@ -604,6 +605,33 @@ export default function PlayPage() {
             <p className="text-xs text-slate-400">
               Hãy nhìn lên màn hình máy chiếu để theo dõi Bảng danh dự học thuật!
             </p>
+          </div>
+        )}
+
+        {/* =========================================================================
+            8. MÀN HÌNH PHÒNG ĐÃ ĐÓNG (STATUS: CLOSED)
+           ========================================================================= */}
+        {room && room.status === 'CLOSED' && (
+          <div className="p-6 rounded-2xl academic-card border-red-500/40 bg-slate-900/90 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-950/70 border border-red-500 flex items-center justify-center mx-auto mb-3 text-2xl">
+              🚪
+            </div>
+            <h3 className="text-xl font-serif font-bold text-red-400">
+              PHÒNG HỌC ĐÃ KẾT THÚC
+            </h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              Quản trò đã đóng và giải tán sảnh thi đấu. Cảm ơn bạn đã tham gia học tập!
+            </p>
+
+            <div className="mt-6">
+              <Link
+                href="/"
+                onClick={() => handleLeaveRoom()}
+                className="inline-flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm border border-slate-700 transition-colors"
+              >
+                <span>VỀ TRANG CHỦ</span>
+              </Link>
+            </div>
           </div>
         )}
       </main>

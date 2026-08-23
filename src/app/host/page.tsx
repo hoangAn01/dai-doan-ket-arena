@@ -23,6 +23,7 @@ import { Header } from '@/components/Header';
 import { QRModal } from '@/components/QRModal';
 import { Timer } from '@/components/Timer';
 import { Podium } from '@/components/Podium';
+import { EndRoomModal } from '@/components/EndRoomModal';
 import { RoomState, TeamId } from '@/lib/types';
 import { TEAMS, TEAM_LIST } from '@/lib/teams';
 import { QUESTIONS } from '@/lib/questions';
@@ -39,12 +40,15 @@ import {
   resetRoom,
   simulateBotAnswers,
   getRoomState,
+  finishRoomEarly,
+  closeAndDestroyRoom,
 } from '@/lib/roomManager';
 
 export default function HostPage() {
   const [pin, setPin] = useState<string>('');
   const [room, setRoom] = useState<RoomState | null>(null);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [isEndModalOpen, setIsEndModalOpen] = useState(false);
   const botSimulatedRef = useRef<number>(-1);
 
   // Khởi tạo và giữ nguyên phòng (tránh mất phòng khi làm mới)
@@ -173,6 +177,20 @@ export default function HostPage() {
     await saveRoomState(updated);
   };
 
+  const handleFinishEarly = async () => {
+    sound.playClick();
+    const updated = await finishRoomEarly(room.pin);
+    if (updated) setRoom(updated);
+  };
+
+  const handleCloseRoom = async () => {
+    sound.playClick();
+    await closeAndDestroyRoom(room.pin);
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
+  };
+
   const answerCounts = [0, 0, 0, 0];
   playersList.forEach((p) => {
     if (p.lastAnswer !== undefined && p.lastAnswer >= 0 && p.lastAnswer < 4) {
@@ -187,6 +205,8 @@ export default function HostPage() {
         round={room.round}
         totalPlayers={totalPlayersCount}
         showBack={true}
+        onBackClick={() => setIsEndModalOpen(true)}
+        endButtonText="KẾT THÚC PHÒNG"
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col">
@@ -195,31 +215,33 @@ export default function HostPage() {
            ========================================================================= */}
         {room.status === 'LOBBY' && (
           <div className="flex-1 flex flex-col justify-between">
-            <div className="p-5 rounded-2xl academic-card border-slate-700/80 bg-slate-900/80 flex flex-col lg:flex-row items-center justify-between gap-4 mb-5">
-              <div className="flex items-center space-x-3 text-center sm:text-left">
-                <div className="w-11 h-11 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 shrink-0">
-                  <BookOpen className="w-5 h-5" />
+            {/* Header info bar */}
+            <div className="p-4 sm:p-5 rounded-2xl academic-card border-slate-700/80 bg-slate-900/90 mb-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-400 text-[11px] font-semibold mb-1">
+                  <BookOpen className="w-3 h-3" />
+                  <span>SẢNH THI ĐẤU LÝ LUẬN & THỰC TIỄN HCM202</span>
                 </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-serif font-bold text-slate-100">
-                    SẢNH CHỜ THAM GIA PHÒNG HỌC
-                  </h2>
-                  <p className="text-slate-400 text-xs mt-0.5">
-                    Sinh viên truy cập <strong className="text-slate-200">/play</strong> và nhập mã PIN hoặc quét mã QR.
-                  </p>
-                </div>
+                <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-wide">
+                  PHÒNG HỌC THUẬT QUẢN TRÒ
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Phòng học sẵn sàng. Sinh viên quét mã QR hoặc nhập mã PIN 4 chữ số để tham gia.
+                </p>
               </div>
 
-              <div className="flex items-center flex-wrap gap-2.5">
-                <div className="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center">
-                  <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
+              <div className="flex items-center space-x-2">
+                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-center min-w-[100px]">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold block">
                     MÃ PIN PHÒNG
                   </span>
                   <span className="text-2xl font-bold text-amber-400 font-mono tracking-widest mt-0.5">
                     {room.pin}
                   </span>
                 </div>
+              </div>
 
+              <div className="flex items-center flex-wrap gap-2.5">
                 <button
                   onClick={() => {
                     sound.playClick();
@@ -238,6 +260,15 @@ export default function HostPage() {
                 >
                   <PlusCircle className="w-4 h-4" />
                   <span>TẠO PHÒNG MỚI</span>
+                </button>
+
+                <button
+                  onClick={() => setIsEndModalOpen(true)}
+                  className="px-3.5 py-2.5 rounded-xl bg-red-950/50 hover:bg-red-900/60 text-red-300 border border-red-800/60 font-semibold text-xs flex items-center space-x-1.5 transition-colors"
+                  title="Kết thúc hoặc đóng phòng học"
+                >
+                  <Trash2 className="w-4 h-4 text-red-400" />
+                  <span>KẾT THÚC PHÒNG</span>
                 </button>
               </div>
             </div>
@@ -754,6 +785,13 @@ export default function HostPage() {
         pin={room.pin}
         isOpen={isQRModalOpen}
         onClose={() => setIsQRModalOpen(false)}
+      />
+
+      <EndRoomModal
+        isOpen={isEndModalOpen}
+        onClose={() => setIsEndModalOpen(false)}
+        onFinishEarly={handleFinishEarly}
+        onCloseRoom={handleCloseRoom}
       />
     </div>
   );

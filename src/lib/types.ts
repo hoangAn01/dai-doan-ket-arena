@@ -53,7 +53,8 @@ export type GameStatus =
   | 'QUESTION'
   | 'REVEAL'
   | 'LEADERBOARD'
-  | 'FINISHED';
+  | 'FINISHED'
+  | 'CLOSED';
 
 export interface RoomState {
   pin: string;

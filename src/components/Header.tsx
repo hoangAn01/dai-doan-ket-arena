@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Volume2, VolumeX, GraduationCap, Users, BookOpen } from 'lucide-react';
+import { Volume2, VolumeX, GraduationCap, Users, BookOpen, LogOut } from 'lucide-react';
 import { sound } from '@/lib/sound';
 
 interface HeaderProps {
@@ -10,6 +10,8 @@ interface HeaderProps {
   round?: 1 | 2;
   totalPlayers?: number;
   showBack?: boolean;
+  onBackClick?: () => void;
+  endButtonText?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,6 +19,8 @@ export const Header: React.FC<HeaderProps> = ({
   round,
   totalPlayers,
   showBack = false,
+  onBackClick,
+  endButtonText = 'Thoát',
 }) => {
   const [isMuted, setIsMuted] = useState(false);
 
@@ -28,6 +32,16 @@ export const Header: React.FC<HeaderProps> = ({
     const nextMute = sound.toggleMute();
     setIsMuted(nextMute);
     if (!nextMute) {
+      sound.playClick();
+    }
+  };
+
+  const handleBack = (e: React.MouseEvent) => {
+    if (onBackClick) {
+      e.preventDefault();
+      sound.playClick();
+      onBackClick();
+    } else {
       sound.playClick();
     }
   };
@@ -96,13 +110,23 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {showBack && (
-            <Link
-              href="/"
-              onClick={() => sound.playClick()}
-              className="text-xs md:text-sm px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition-colors"
-            >
-              Thoát
-            </Link>
+            onBackClick ? (
+              <button
+                onClick={handleBack}
+                className="text-xs md:text-sm px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 text-red-300 font-semibold transition-colors flex items-center space-x-1.5"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>{endButtonText}</span>
+              </button>
+            ) : (
+              <Link
+                href="/"
+                onClick={() => sound.playClick()}
+                className="text-xs md:text-sm px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition-colors"
+              >
+                {endButtonText}
+              </Link>
+            )
           )}
         </div>
       </div>
