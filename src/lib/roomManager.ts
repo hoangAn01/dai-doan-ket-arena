@@ -66,7 +66,6 @@ export async function saveRoomState(state: RoomState): Promise<void> {
   if (isFirebaseConfigured && db) {
     try {
       const roomRef = ref(db, `rooms/${state.pin}`);
-      // Dùng Promise.race để không bị treo nếu không có mạng
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Firebase timeout')), 2000)
       );
@@ -147,7 +146,6 @@ export function subscribeToRoom(
 
 // Lấy phòng 1 lần
 export async function getRoomState(pin: string): Promise<RoomState | null> {
-  // Ưu tiên đọc từ local storage trước
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`);
     if (saved) {
@@ -157,7 +155,6 @@ export async function getRoomState(pin: string): Promise<RoomState | null> {
     }
   }
 
-  // Thử đọc từ Firebase nếu có
   if (isFirebaseConfigured && db) {
     try {
       const roomRef = ref(db, `rooms/${pin}`);
@@ -181,9 +178,9 @@ export async function joinRoom(
   teamId: TeamId,
   playerId?: string
 ): Promise<{ success: boolean; playerId: string; message?: string; room?: RoomState }> {
-  const room = await getRoomState(pin);
+  let room = await getRoomState(pin);
   if (!room) {
-    return { success: false, playerId: '', message: 'Không tìm thấy phòng với mã PIN này!' };
+    room = createInitialRoom(pin);
   }
 
   if (room.status !== 'LOBBY') {
@@ -255,7 +252,6 @@ export async function submitAnswer(
     return { success: false, points: 0, isCorrect: false, newStreak: 0 };
   }
 
-  // Nếu người chơi đã trả lời câu này rồi thì bỏ qua
   if (player.lastAnswer !== undefined) {
     return {
       success: true,
@@ -322,7 +318,6 @@ export async function revealAnswersAndScoreTeams(pin: string): Promise<RoomState
       (p) => p.teamId === teamId
     );
 
-    // Tính tổng điểm vòng này của các thành viên trong đội
     let questionTeamPoints = teamMembers.reduce(
       (sum, p) => sum + (p.pointsEarned || 0),
       0
@@ -366,7 +361,6 @@ export async function startNextQuestion(pin: string): Promise<RoomState | null> 
   }
 
   if (nextIndex >= QUESTIONS.length) {
-    // Đã kết thúc toàn bộ trận đấu
     const finishedRoom: RoomState = {
       ...room,
       status: 'FINISHED',
@@ -378,7 +372,6 @@ export async function startNextQuestion(pin: string): Promise<RoomState | null> 
   const question = QUESTIONS[nextIndex];
   nextRound = question.round;
 
-  // Reset câu trả lời của tất cả người chơi cho câu mới
   const resetPlayers = { ...room.players };
   Object.keys(resetPlayers).forEach((pId) => {
     resetPlayers[pId] = {
@@ -453,6 +446,42 @@ export async function populateBotPlayers(pin: string): Promise<RoomState | null>
   return updatedRoom;
 }
 
+// Xóa tất cả 30 Bot test
+export async function clearAllBots(pin: string): Promise<RoomState | null> {
+  const room = await getRoomState(pin);
+  if (!room) return null;
+
+  const nonBotPlayers: Record<string, Player> = {};
+  Object.values(room.players || {}).forEach((p) => {
+    if (!p.isBot) {
+      nonBotPlayers[p.id] = p;
+    }
+  });
+
+  const updatedTeams = { ...room.teams };
+  Object.keys(updatedTeams).forEach((tKey) => {
+    const tid = tKey as TeamId;
+    const count = Object.values(nonBotPlayers).filter((p) => p.teamId === tid).length;
+    updatedTeams[tid] = { ...updatedTeams[tid], count };
+  });
+
+  const updatedRoom: RoomState = {
+    ...room,
+    players: nonBotPlayers,
+    teams: updatedTeams,
+  };
+
+  await saveRoomState(updatedRoom);
+  return updatedRoom;
+}
+
+// Đặt lại toàn bộ phòng (Reset Players & Scores)
+export async function resetRoom(pin: string): Promise<RoomState | null> {
+  const freshRoom = createInitialRoom(pin);
+  await saveRoomState(freshRoom);
+  return freshRoom;
+}
+
 // Tự động cho Bot trả lời câu hỏi hiện tại
 export async function simulateBotAnswers(pin: string): Promise<void> {
   const room = await getRoomState(pin);
@@ -466,7 +495,6 @@ export async function simulateBotAnswers(pin: string): Promise<void> {
   );
 
   for (const bot of bots) {
-    // 85% chọn đúng, 15% chọn ngẫu nhiên
     const chooseCorrect = Math.random() < 0.85;
     let chosenAnswer = currentQ.correctIndex;
     if (!chooseCorrect) {
