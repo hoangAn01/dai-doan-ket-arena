@@ -13,6 +13,7 @@ import {
   Award,
   BookOpen,
   ArrowLeft,
+  Zap,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { RoomState, TeamId, Player } from '@/lib/types';
@@ -58,7 +59,6 @@ export default function PlayPage() {
   useEffect(() => {
     if (!pin || pin.length < 4) return;
 
-    // Đọc trạng thái ban đầu
     getRoomState(pin).then((r) => {
       if (r) setRoom(r);
     });
@@ -350,11 +350,45 @@ export default function PlayPage() {
         )}
 
         {/* =========================================================================
-            3. MÀN HÌNH TRẢ LỜI CÂU HỎI (STATUS: QUESTION)
+            3. MÀN HÌNH CHUYỂN TIẾP VÒNG 2 TRÊN ĐIỆN THOẠI (STATUS: ROUND_TRANSITION)
+           ========================================================================= */}
+        {currentPlayer && room && room.status === 'ROUND_TRANSITION' && (
+          <div className="p-6 rounded-3xl academic-card-gold border border-amber-500/60 bg-slate-900/95 text-center shadow-xl animate-in zoom-in-95 duration-300">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 mx-auto mb-3">
+              <Zap className="w-6 h-6" />
+            </div>
+
+            <span className="px-3 py-0.5 rounded-full bg-amber-950/80 border border-amber-800 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
+              VÒNG 2: BÀN TRÒN CHIẾN LƯỢC
+            </span>
+
+            <h3 className="text-xl font-serif font-bold text-slate-100 mt-2">
+              CHUẨN BỊ THẢO LUẬN NHÓM
+            </h3>
+
+            <div className="my-4 p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-left space-y-2">
+              <div className="flex items-start space-x-2 text-xs text-amber-300 font-semibold">
+                <span className="text-base">⚡</span>
+                <span>Cơ chế Combo Đồng Thuận x2:</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-relaxed pl-6">
+                Hãy quay sang thảo luận trực tiếp cùng 4 đồng đội trong <strong>{TEAMS[currentPlayer.teamId]?.name}</strong>. Khi cả 5 bạn cùng chọn đúng đáp án, khối sẽ nhận ngay <strong>x2 điểm số</strong>!
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-center space-x-2 text-xs text-slate-400">
+              <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+              <span>Đang chờ quản trò bấm bắt đầu câu hỏi...</span>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            4. MÀN HÌNH TRẢ LỜI CÂU HỎI (STATUS: QUESTION)
            ========================================================================= */}
         {currentPlayer && room && room.status === 'QUESTION' && currentQ && (
           <div className="flex-1 flex flex-col justify-between py-1">
-            <div className="flex items-center justify-between p-2.5 rounded-xl academic-card border-slate-800 mb-2.5">
+            <div className="flex items-center justify-between p-2.5 rounded-xl academic-card border-slate-800 mb-2">
               <div className="flex items-center space-x-2">
                 <span className="text-lg">{TEAMS[currentPlayer.teamId]?.icon}</span>
                 <div>
@@ -375,7 +409,8 @@ export default function PlayPage() {
               )}
             </div>
 
-            <div className="p-3.5 rounded-xl academic-card border-slate-700/80 bg-slate-900/80 mb-2.5">
+            {/* Question Box */}
+            <div className="p-3.5 rounded-xl academic-card border-slate-700/80 bg-slate-900/80 mb-2">
               <span className="text-[10px] font-semibold uppercase text-slate-400">
                 {currentQ.round === 1
                   ? `Vòng 1 · Câu ${room.currentQuestionIndex + 1}/5`
@@ -384,10 +419,25 @@ export default function PlayPage() {
               <h3 className="text-xs sm:text-sm font-serif font-bold text-slate-100 mt-0.5 leading-snug">
                 {currentQ.text}
               </h3>
+
+              {currentQ.imageUrl && (
+                <div className="mt-2 rounded-lg overflow-hidden border border-slate-700/80 bg-slate-950">
+                  <img
+                    src={currentQ.imageUrl}
+                    alt="Tư liệu"
+                    className="w-full h-28 object-cover"
+                  />
+                  {currentQ.imageCaption && (
+                    <p className="text-[10px] text-slate-400 p-1 italic truncate">
+                      {currentQ.imageCaption}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* 4 Answer Buttons */}
-            <div className="grid grid-cols-1 gap-2 mb-2.5">
+            <div className="grid grid-cols-1 gap-2 mb-2">
               {currentQ.options.map((opt, idx) => {
                 const labels = ['A', 'B', 'C', 'D'];
                 const isSelected =
@@ -429,7 +479,7 @@ export default function PlayPage() {
         )}
 
         {/* =========================================================================
-            4. MÀN HÌNH KẾT QUẢ CÂU HỎI (STATUS: REVEAL)
+            5. MÀN HÌNH KẾT QUẢ CÂU HỎI (STATUS: REVEAL)
            ========================================================================= */}
         {currentPlayer && room && room.status === 'REVEAL' && currentQ && (
           <div className="p-5 rounded-2xl academic-card border-slate-700/80 bg-slate-900/90 text-center">
@@ -486,7 +536,7 @@ export default function PlayPage() {
         )}
 
         {/* =========================================================================
-            5. MÀN HÌNH BẢNG XẾP HẠNG (STATUS: LEADERBOARD)
+            6. MÀN HÌNH BẢNG XẾP HẠNG (STATUS: LEADERBOARD)
            ========================================================================= */}
         {currentPlayer && room && room.status === 'LEADERBOARD' && (
           <div className="p-5 rounded-2xl academic-card border-slate-700/80 bg-slate-900/90 text-center">
@@ -530,7 +580,7 @@ export default function PlayPage() {
         )}
 
         {/* =========================================================================
-            6. MÀN HÌNH TỔNG KẾT (STATUS: FINISHED)
+            7. MÀN HÌNH TỔNG KẾT (STATUS: FINISHED)
            ========================================================================= */}
         {currentPlayer && room && room.status === 'FINISHED' && (
           <div className="p-5 rounded-2xl academic-card-gold border-amber-500/50 bg-slate-900/90 text-center">

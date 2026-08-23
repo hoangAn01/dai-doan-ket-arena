@@ -353,10 +353,25 @@ export async function startNextQuestion(pin: string): Promise<RoomState | null> 
   const room = await getRoomState(pin);
   if (!room) return null;
 
+  // Nếu vừa hoàn thành Vòng 1 (câu 5, index 4) và đang chuyển sang Vòng 2
+  if (room.status !== 'LOBBY' && room.currentQuestionIndex === 4 && room.status !== 'ROUND_TRANSITION') {
+    const transitionRoom: RoomState = {
+      ...room,
+      status: 'ROUND_TRANSITION',
+      round: 2,
+      currentQuestionIndex: 5,
+    };
+    await saveRoomState(transitionRoom);
+    return transitionRoom;
+  }
+
   let nextIndex = room.currentQuestionIndex;
   let nextRound = room.round;
 
-  if (room.status !== 'LOBBY') {
+  if (room.status === 'ROUND_TRANSITION') {
+    nextIndex = 5;
+    nextRound = 2;
+  } else if (room.status !== 'LOBBY') {
     nextIndex = room.currentQuestionIndex + 1;
   }
 

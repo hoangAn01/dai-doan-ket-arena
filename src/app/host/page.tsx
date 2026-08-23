@@ -15,6 +15,9 @@ import {
   PlusCircle,
   Trash2,
   RotateCcw,
+  Zap,
+  Clock,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { QRModal } from '@/components/QRModal';
@@ -65,7 +68,6 @@ export default function HostPage() {
       window.history.replaceState(null, '', `/host?pin=${activePin}`);
     }
 
-    // Đọc trạng thái phòng hiện tại nếu đã có
     getRoomState(activePin).then((existing) => {
       if (existing) {
         setRoom(existing);
@@ -117,21 +119,18 @@ export default function HostPage() {
   const botCount = playersList.filter((p) => p.isBot).length;
   const answeredCount = playersList.filter((p) => p.lastAnswer !== undefined).length;
 
-  // Nạp 30 bot test
   const handlePopulateBots = async () => {
     sound.playClick();
     const updated = await populateBotPlayers(room.pin);
     if (updated) setRoom(updated);
   };
 
-  // Xóa 30 bot test
   const handleClearBots = async () => {
     sound.playClick();
     const updated = await clearAllBots(room.pin);
     if (updated) setRoom(updated);
   };
 
-  // Tạo mã phòng mới hoàn toàn
   const handleCreateNewRoom = async () => {
     sound.playClick();
     const newPin = generatePin();
@@ -145,7 +144,6 @@ export default function HostPage() {
     await saveRoomState(freshRoom);
   };
 
-  // Reset người chơi phòng hiện tại về 0
   const handleResetRoom = async () => {
     sound.playClick();
     const updated = await resetRoom(room.pin);
@@ -197,7 +195,6 @@ export default function HostPage() {
            ========================================================================= */}
         {room.status === 'LOBBY' && (
           <div className="flex-1 flex flex-col justify-between">
-            {/* Top Lobby Bar: PIN & Actions */}
             <div className="p-5 rounded-2xl academic-card border-slate-700/80 bg-slate-900/80 flex flex-col lg:flex-row items-center justify-between gap-4 mb-5">
               <div className="flex items-center space-x-3 text-center sm:text-left">
                 <div className="w-11 h-11 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 shrink-0">
@@ -213,7 +210,6 @@ export default function HostPage() {
                 </div>
               </div>
 
-              {/* PIN Box & Controls */}
               <div className="flex items-center flex-wrap gap-2.5">
                 <div className="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center">
                   <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
@@ -246,7 +242,7 @@ export default function HostPage() {
               </div>
             </div>
 
-            {/* 6 Khối Liên Minh Slots (5 slots per team) */}
+            {/* 6 Khối Liên Minh Slots */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-5">
               {TEAM_LIST.map((team) => {
                 const members = playersList.filter((p) => p.teamId === team.id);
@@ -263,7 +259,6 @@ export default function HostPage() {
                         : 'border-slate-800/80 bg-slate-950/40'
                     }`}
                   >
-                    {/* Team Header */}
                     <div className="flex items-center justify-between mb-2.5">
                       <div className="flex items-center space-x-2">
                         <span className="text-xl">{team.icon}</span>
@@ -286,7 +281,6 @@ export default function HostPage() {
                       </span>
                     </div>
 
-                    {/* Member Slots */}
                     <div className="space-y-1 min-h-[120px] flex flex-col justify-start">
                       {Array.from({ length: 5 }).map((_, slotIdx) => {
                         const player = members[slotIdx];
@@ -328,7 +322,7 @@ export default function HostPage() {
               })}
             </div>
 
-            {/* Bottom Actions Bar */}
+            {/* Bottom Actions */}
             <div className="p-3.5 rounded-xl academic-card border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center space-x-2 text-xs text-slate-300">
                 <Users className="w-4 h-4 text-amber-400" />
@@ -382,11 +376,80 @@ export default function HostPage() {
         )}
 
         {/* =========================================================================
-            2. MÀN HÌNH CÂU HỎI (QUESTION IN PROGRESS)
+            2. MÀN HÌNH CHUYỂN TIẾP SANG VÒNG 2 (ROUND TRANSITION INTERMISSION)
+           ========================================================================= */}
+        {room.status === 'ROUND_TRANSITION' && (
+          <div className="flex-1 flex flex-col items-center justify-center py-6 animate-in zoom-in-95 duration-300">
+            <div className="w-full max-w-3xl p-8 rounded-3xl academic-card-gold border-2 border-amber-500/60 bg-slate-900 text-center shadow-2xl">
+              <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider mb-4">
+                <Zap className="w-4 h-4 text-amber-400" />
+                <span>BƯỚC VÀO VÒNG THI ĐẤU QUYẾT ĐỊNH</span>
+              </div>
+
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-slate-100 mb-3">
+                VÒNG 2: BÀN TRÒN CHIẾN LƯỢC
+              </h2>
+              <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto mb-8">
+                5 tình huống lịch sử và thời đại chuyên sâu — Thảo luận tập thể trong từng khối liên minh để tìm ra phương án tối ưu nhất.
+              </p>
+
+              {/* Special Rules 3 Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left mb-8">
+                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center space-x-2 text-amber-400 mb-2">
+                      <Clock className="w-5 h-5" />
+                      <span className="font-serif font-bold text-sm">60 Giây / Tình huống</span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Thời gian đủ dài để 5 thành viên trong khối cùng tranh luận, phân tích bối cảnh trước khi chọn.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-800/50 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center space-x-2 text-amber-300 mb-2">
+                      <Zap className="w-5 h-5 text-amber-400" />
+                      <span className="font-serif font-bold text-sm">Combo Đồng Thuận x2</span>
+                    </div>
+                    <p className="text-xs text-amber-200/80 leading-relaxed">
+                      Nhân đôi toàn bộ điểm số của vòng thi đấu nếu <strong>cả 5 thành viên</strong> trong khối cùng chọn đúng đáp án!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center space-x-2 text-amber-400 mb-2">
+                      <ImageIcon className="w-5 h-5" />
+                      <span className="font-serif font-bold text-sm">Ảnh Tư Liệu Thực Tế</span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Mỗi tình huống đều đi kèm hình ảnh lưu trữ lịch sử chân thực giúp bài học thêm sinh động.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Start Round 2 */}
+              <button
+                onClick={handleStartNextQuestion}
+                className="px-8 py-3.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-base flex items-center space-x-2 mx-auto shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95"
+              >
+                <span>BẮT ĐẦU VÒNG 2 (TÌNH HUỐNG 1)</span>
+                <ChevronRight className="w-5 h-5 text-slate-950" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            3. MÀN HÌNH CÂU HỎI (QUESTION IN PROGRESS)
            ========================================================================= */}
         {room.status === 'QUESTION' && currentQ && (
           <div className="flex-1 flex flex-col justify-between py-2">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-5">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
               <div className="flex items-center space-x-3">
                 <div className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-serif font-bold text-xs sm:text-sm flex items-center space-x-2">
                   <BookOpen className="w-4 h-4 text-amber-400" />
@@ -397,8 +460,9 @@ export default function HostPage() {
                   </span>
                 </div>
                 {currentQ.round === 2 && (
-                  <div className="px-3 py-1 rounded-lg bg-amber-950/40 border border-amber-800/40 text-amber-300 text-xs font-semibold">
-                    ⚡ Combo Đồng Thuận x2 (5/5 Đúng)
+                  <div className="px-3 py-1 rounded-lg bg-amber-950/40 border border-amber-800/40 text-amber-300 text-xs font-semibold flex items-center space-x-1.5 animate-pulse">
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Combo Đồng Thuận x2 (5/5 Đúng)</span>
                   </div>
                 )}
               </div>
@@ -410,20 +474,46 @@ export default function HostPage() {
               />
             </div>
 
-            <div className="p-5 md:p-7 rounded-2xl academic-card border-slate-700/80 bg-slate-900/80 mb-5">
-              {currentQ.context && (
-                <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 mb-3 text-slate-300 text-xs sm:text-sm leading-relaxed">
-                  <strong className="text-amber-400">📖 Bối cảnh lịch sử:</strong>{' '}
-                  {currentQ.context}
-                </div>
-              )}
+            {/* Question Box (With optional historical image) */}
+            <div className="p-5 md:p-6 rounded-2xl academic-card border-slate-700/80 bg-slate-900/80 mb-4">
+              <div className="flex flex-col lg:flex-row gap-5 items-start">
+                {/* Left: Historical Context & Text */}
+                <div className="flex-1">
+                  {currentQ.context && (
+                    <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 mb-3 text-slate-300 text-xs sm:text-sm leading-relaxed">
+                      <strong className="text-amber-400">📖 Bối cảnh lịch sử:</strong>{' '}
+                      {currentQ.context}
+                    </div>
+                  )}
 
-              <h2 className="text-lg md:text-2xl font-serif font-bold text-slate-100 leading-snug">
-                {currentQ.text}
-              </h2>
+                  <h2 className="text-lg md:text-2xl font-serif font-bold text-slate-100 leading-snug">
+                    {currentQ.text}
+                  </h2>
+                </div>
+
+                {/* Right: Documentary Historical Photo (if available in Round 2) */}
+                {currentQ.imageUrl && (
+                  <div className="w-full lg:w-72 shrink-0 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-1.5 shadow-md">
+                    <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-slate-900">
+                      <img
+                        src={currentQ.imageUrl}
+                        alt="Ảnh tư liệu lịch sử"
+                        className="w-full h-full object-cover"
+                        loading="eager"
+                      />
+                    </div>
+                    {currentQ.imageCaption && (
+                      <p className="text-[11px] text-slate-400 mt-1.5 px-1 leading-snug italic">
+                        {currentQ.imageCaption}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+            {/* 4 Options Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               {currentQ.options.map((opt, idx) => {
                 const labels = ['A', 'B', 'C', 'D'];
                 return (
@@ -440,6 +530,7 @@ export default function HostPage() {
               })}
             </div>
 
+            {/* Bottom Status */}
             <div className="p-3 rounded-xl academic-card border border-slate-800 flex items-center justify-between">
               <div className="text-xs text-slate-400">
                 Đã ghi nhận{' '}
@@ -460,7 +551,7 @@ export default function HostPage() {
         )}
 
         {/* =========================================================================
-            3. MÀN HÌNH REVEAL (CÔNG BỐ ĐÁP ÁN & GIẢI THÍCH LÝ LUẬN)
+            4. MÀN HÌNH REVEAL (CÔNG BỐ ĐÁP ÁN & GIẢI THÍCH LÝ LUẬN)
            ========================================================================= */}
         {room.status === 'REVEAL' && currentQ && (
           <div className="flex-1 flex flex-col justify-between py-2">
@@ -526,6 +617,7 @@ export default function HostPage() {
               })}
             </div>
 
+            {/* Explanation Box */}
             {currentQ.explanation && (
               <div className="p-3.5 rounded-xl academic-card border-amber-800/40 bg-amber-950/20 mb-4">
                 <div className="flex items-center space-x-1.5 text-amber-300 font-semibold text-xs mb-1">
@@ -551,7 +643,7 @@ export default function HostPage() {
         )}
 
         {/* =========================================================================
-            4. MÀN HÌNH BẢNG XẾP HẠNG (LEADERBOARD)
+            5. MÀN HÌNH BẢNG XẾP HẠNG (LEADERBOARD)
            ========================================================================= */}
         {room.status === 'LEADERBOARD' && (
           <div className="flex-1 flex flex-col justify-between py-2">
@@ -634,7 +726,9 @@ export default function HostPage() {
                 className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs sm:text-sm flex items-center space-x-2 transition-colors"
               >
                 <span>
-                  {room.currentQuestionIndex + 1 < QUESTIONS.length
+                  {room.currentQuestionIndex === 4 && room.round === 1
+                    ? '🔥 CHUYỂN SANG VÒNG 2'
+                    : room.currentQuestionIndex + 1 < QUESTIONS.length
                     ? 'CÂU HỎI TIẾP THEO'
                     : '🏆 LỄ TỔNG KẾT & VINH DANH'}
                 </span>
@@ -645,7 +739,7 @@ export default function HostPage() {
         )}
 
         {/* =========================================================================
-            5. MÀN HÌNH TỔNG KẾT & PODIUM (FINISHED)
+            6. MÀN HÌNH TỔNG KẾT & PODIUM (FINISHED)
            ========================================================================= */}
         {room.status === 'FINISHED' && (
           <Podium

@@ -43,10 +43,13 @@ export interface Question {
   correctIndex: number; // 0: A, 1: B, 2: C, 3: D
   explanation?: string;
   timeLimit: number; // seconds (15 or 60)
+  imageUrl?: string;
+  imageCaption?: string;
 }
 
 export type GameStatus =
   | 'LOBBY'
+  | 'ROUND_TRANSITION'
   | 'QUESTION'
   | 'REVEAL'
   | 'LEADERBOARD'
