@@ -66,7 +66,9 @@ export async function saveRoomState(state: RoomState): Promise<void> {
   if (isFirebaseConfigured && db) {
     try {
       const roomRef = ref(db, `rooms/${state.pin}`);
-      await set(roomRef, cleanState);
+      // Firebase Realtime DB từ chối giá trị undefined, cần làm sạch object trước khi set
+      const firebaseSafeState = JSON.parse(JSON.stringify(cleanState));
+      await set(roomRef, firebaseSafeState);
     } catch (e) {
       console.warn('Firebase sync save notice:', e);
     }
@@ -437,13 +439,12 @@ export async function startNextQuestion(pin: string): Promise<RoomState | null> 
 
   const resetPlayers = { ...room.players };
   Object.keys(resetPlayers).forEach((pId) => {
-    resetPlayers[pId] = {
-      ...resetPlayers[pId],
-      lastAnswer: undefined,
-      lastAnswerTime: undefined,
-      isCorrect: undefined,
-      pointsEarned: undefined,
-    };
+    const p = { ...resetPlayers[pId] };
+    delete p.lastAnswer;
+    delete p.lastAnswerTime;
+    delete p.isCorrect;
+    delete p.pointsEarned;
+    resetPlayers[pId] = p;
   });
 
   const updatedRoom: RoomState = {
