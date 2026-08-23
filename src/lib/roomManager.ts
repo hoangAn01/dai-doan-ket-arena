@@ -79,13 +79,16 @@ export function subscribeToRoom(
   callback: (state: RoomState | null) => void
 ): () => void {
   let lastNotifiedVersion = 0;
+  let lastNotifiedStatus = '';
 
   const notify = (data: RoomState | null) => {
     if (!data) return;
-    // Dùng lastUpdated timestamp thay vì JSON.stringify để tiết kiệm CPU
     const version = data.lastUpdated || 0;
-    if (version > lastNotifiedVersion) {
+    const statusKey = `${data.status}_${data.currentQuestionIndex}`;
+    // Chấp nhận update nếu version mới HƠN hoặc trạng thái game thay đổi
+    if (version > lastNotifiedVersion || statusKey !== lastNotifiedStatus) {
       lastNotifiedVersion = version;
+      lastNotifiedStatus = statusKey;
       if (typeof window !== 'undefined') {
         try {
           localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, JSON.stringify(data));
