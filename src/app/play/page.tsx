@@ -162,7 +162,7 @@ export default function PlayPage() {
   const currentQ = room ? QUESTIONS[room.currentQuestionIndex] : null;
 
   return (
-    <div className="min-h-screen flex flex-col justify-between">
+    <div className="min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100">
       <Header
         pin={room?.pin || pin}
         round={room?.round}
@@ -171,33 +171,33 @@ export default function PlayPage() {
         endButtonText="Thoát khối"
       />
 
-      <main className="flex-1 max-w-md w-full mx-auto px-4 py-5 flex flex-col justify-center">
+      <main className="flex-1 w-full max-w-lg md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex flex-col justify-center">
         {/* =========================================================================
             1. MÀN HÌNH ĐĂNG KÝ (CHƯA VÀO PHÒNG)
            ========================================================================= */}
         {!currentPlayer && (
-          <div className="p-5 sm:p-6 rounded-2xl academic-card border-slate-700/80 bg-slate-900/90 shadow-xl">
-            <div className="text-center mb-4">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 mx-auto mb-2">
-                <BookOpen className="w-5 h-5" />
+          <div className="max-w-md w-full mx-auto p-5 sm:p-7 rounded-2xl academic-card border-slate-700/80 bg-slate-900/90 shadow-2xl">
+            <div className="text-center mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 mx-auto mb-2.5 shadow-inner">
+                <BookOpen className="w-6 h-6" />
               </div>
-              <h2 className="text-lg font-serif font-bold text-slate-100">
+              <h2 className="text-xl font-serif font-bold text-slate-100">
                 THAM GIA PHÒNG HỌC
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-400 mt-1">
                 Điền thông tin và chọn 1 trong 6 Khối liên minh (5 sinh viên/khối)
               </p>
             </div>
 
             {errorMessage && (
-              <div className="p-2.5 mb-3 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs text-center font-medium">
+              <div className="p-3 mb-4 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs text-center font-medium animate-in fade-in">
                 {errorMessage}
               </div>
             )}
 
-            <form onSubmit={handleJoin} className="space-y-3.5">
+            <form onSubmit={handleJoin} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                   MÃ PIN PHÒNG (4 SỐ)
                 </label>
                 <input
@@ -206,13 +206,13 @@ export default function PlayPage() {
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                   placeholder="1234"
-                  className="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-amber-400 font-mono font-bold text-xl tracking-widest text-center focus:outline-none focus:border-amber-500"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-amber-400 font-mono font-bold text-2xl tracking-widest text-center focus:outline-none focus:border-amber-500 transition-colors shadow-inner"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                   HỌ VÀ TÊN SINH VIÊN
                 </label>
                 <input
@@ -220,17 +220,17 @@ export default function PlayPage() {
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
                   placeholder="Nguyễn Văn A"
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-xs sm:text-sm focus:outline-none focus:border-amber-500"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-amber-500 transition-colors"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
                   CHỌN KHỐI LIÊN MINH
                 </label>
 
-                <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 gap-2.5 max-h-56 overflow-y-auto pr-1">
                   {TEAM_LIST.map((team) => {
                     const currentCount =
                       room && room.players
@@ -249,30 +249,30 @@ export default function PlayPage() {
                           sound.playClick();
                           setSelectedTeamId(team.id);
                         }}
-                        className={`p-2.5 rounded-xl border text-left transition-all relative ${
+                        className={`p-3 rounded-xl border text-left transition-all ${
                           isSelected
-                            ? 'border-amber-500 bg-amber-950/40 ring-1 ring-amber-500/50'
+                            ? 'border-amber-500 bg-amber-950/40 ring-1 ring-amber-500/50 shadow-md'
                             : isFull
-                            ? 'border-slate-800/80 bg-slate-950/40 opacity-40 cursor-not-allowed'
-                            : 'border-slate-800 bg-slate-950/70 hover:border-slate-700'
+                            ? 'opacity-40 border-slate-800 bg-slate-950/40 cursor-not-allowed'
+                            : 'border-slate-800 bg-slate-950/70 hover:border-slate-700 hover:bg-slate-900'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-base">{team.icon}</span>
+                          <span className="text-xl">{team.icon}</span>
                           <span
-                            className={`text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded ${
+                            className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
                               isFull
-                                ? 'bg-red-950 text-red-400 border border-red-900'
+                                ? 'bg-red-950 text-red-400'
                                 : 'bg-slate-800 text-slate-300'
                             }`}
                           >
-                            {isFull ? 'ĐỦ' : `${currentCount}/5`}
+                            {currentCount}/5
                           </span>
                         </div>
                         <div className="font-serif font-bold text-xs text-slate-200 truncate">
                           {team.shortName}
                         </div>
-                        <div className="text-[9px] text-slate-400 truncate">
+                        <div className="text-[10px] text-slate-400 truncate">
                           {team.slogan}
                         </div>
                       </button>
@@ -284,7 +284,7 @@ export default function PlayPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || !selectedTeamId}
-                className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-slate-950 font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
+                className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-slate-950 font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-lg active:scale-[0.99]"
               >
                 {isSubmitting ? 'ĐANG KẾT NỐI...' : 'VÀO PHÒNG HỌC'}
               </button>
@@ -296,52 +296,52 @@ export default function PlayPage() {
             2. MÀN HÌNH SẢNH CHỜ TRONG PHÒNG (STATUS: LOBBY)
            ========================================================================= */}
         {currentPlayer && room && room.status === 'LOBBY' && (
-          <div className="p-5 sm:p-6 rounded-2xl academic-card border-slate-700/80 bg-slate-900/90 text-center">
-            <div className="text-3xl mb-1.5">{TEAMS[currentPlayer.teamId]?.icon}</div>
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-300 text-xs font-semibold uppercase">
+          <div className="max-w-lg w-full mx-auto p-6 sm:p-8 rounded-3xl academic-card border-slate-700/80 bg-slate-900/90 text-center shadow-2xl">
+            <div className="text-4xl mb-2">{TEAMS[currentPlayer.teamId]?.icon}</div>
+            <span className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-amber-300 text-xs font-semibold uppercase tracking-wider">
               {TEAMS[currentPlayer.teamId]?.name}
             </span>
-            <h2 className="text-lg font-serif font-bold text-white mt-2">{currentPlayer.name}</h2>
-            <p className="text-xs text-slate-400 italic mt-0.5">
+            <h2 className="text-2xl font-serif font-bold text-white mt-3">{currentPlayer.name}</h2>
+            <p className="text-xs sm:text-sm text-slate-400 italic mt-1">
               "{TEAMS[currentPlayer.teamId]?.slogan}"
             </p>
 
-            <div className="my-5 p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center space-x-2">
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-              <span className="text-xs text-slate-300 font-medium">
+            <div className="my-6 p-4 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center space-x-3 shadow-inner">
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+              <span className="text-xs sm:text-sm text-slate-300 font-medium">
                 Đang chờ quản trò bấm bắt đầu trận đấu...
               </span>
             </div>
 
-            <div className="text-left mb-4">
-              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 uppercase mb-2">
+            <div className="text-left mb-5">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase mb-2.5">
                 <span>THÀNH VIÊN TRONG KHỐI</span>
-                <span>
+                <span className="font-mono text-amber-400">
                   {
                     Object.values(room.players).filter(
                       (p) => p.teamId === currentPlayer.teamId
                     ).length
                   }
-                  /5
+                  /5 sinh viên
                 </span>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {Object.values(room.players)
                   .filter((p) => p.teamId === currentPlayer.teamId)
                   .map((p, idx) => (
                     <div
                       key={p.id}
-                      className={`px-2.5 py-1 rounded-lg text-xs flex items-center justify-between ${
+                      className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm flex items-center justify-between ${
                         p.id === currentPlayer.id
-                          ? 'bg-amber-950/40 border border-amber-800/50 text-amber-200 font-semibold'
+                          ? 'bg-amber-950/40 border border-amber-800/50 text-amber-200 font-semibold shadow-sm'
                           : 'bg-slate-950/60 border border-slate-800 text-slate-300'
                       }`}
                     >
                       <span>
                         #{idx + 1} {p.name} {p.id === currentPlayer.id && '(Bạn)'}
                       </span>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                     </div>
                   ))}
               </div>
@@ -349,7 +349,7 @@ export default function PlayPage() {
 
             <button
               onClick={handleLeaveRoom}
-              className="text-xs text-slate-400 hover:text-slate-200 underline pt-2"
+              className="text-xs text-slate-400 hover:text-slate-200 underline pt-2 transition-colors"
             >
               Đổi thông tin hoặc chọn khối khác
             </button>
@@ -357,94 +357,123 @@ export default function PlayPage() {
         )}
 
         {/* =========================================================================
-            3. MÀN HÌNH CHUYỂN TIẾP VÒNG 2 TRÊN ĐIỆN THOẠI (STATUS: ROUND_TRANSITION)
+            3. MÀN HÌNH CHUYỂN TIẾP VÒNG 2 (STATUS: ROUND_TRANSITION)
            ========================================================================= */}
         {currentPlayer && room && room.status === 'ROUND_TRANSITION' && (
-          <div className="p-6 rounded-3xl academic-card-gold border border-amber-500/60 bg-slate-900/95 text-center shadow-xl animate-in zoom-in-95 duration-300">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 mx-auto mb-3">
-              <Zap className="w-6 h-6" />
+          <div className="max-w-2xl w-full mx-auto p-6 sm:p-8 rounded-3xl academic-card-gold border border-amber-500/60 bg-slate-900/95 text-center shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 mx-auto mb-3.5 shadow-md">
+              <Zap className="w-7 h-7" />
             </div>
 
-            <span className="px-3 py-0.5 rounded-full bg-amber-950/80 border border-amber-800 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
+            <span className="px-3.5 py-1 rounded-full bg-amber-950/80 border border-amber-800 text-amber-300 text-xs font-bold uppercase tracking-wider">
               VÒNG 2: BÀN TRÒN CHIẾN LƯỢC
             </span>
 
-            <h3 className="text-xl font-serif font-bold text-slate-100 mt-2">
+            <h3 className="text-xl sm:text-2xl font-serif font-bold text-slate-100 mt-3">
               CHUẨN BỊ THẢO LUẬN NHÓM
             </h3>
 
-            <div className="my-4 p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-left space-y-2">
-              <div className="flex items-start space-x-2 text-xs text-amber-300 font-semibold">
-                <span className="text-base">⚡</span>
+            <div className="my-5 p-4 sm:p-5 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2.5 shadow-inner">
+              <div className="flex items-center space-x-2 text-sm text-amber-300 font-semibold">
+                <span className="text-lg">⚡</span>
                 <span>Cơ chế Combo Đồng Thuận x2:</span>
               </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed pl-6">
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed pl-7">
                 Hãy quay sang thảo luận trực tiếp cùng 4 đồng đội trong <strong>{TEAMS[currentPlayer.teamId]?.name}</strong>. Khi cả 5 bạn cùng chọn đúng đáp án, khối sẽ nhận ngay <strong>x2 điểm số</strong>!
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-center space-x-2 text-xs text-slate-400">
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-center space-x-2 text-xs sm:text-sm text-slate-400">
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
               <span>Đang chờ quản trò bấm bắt đầu câu hỏi...</span>
             </div>
           </div>
         )}
 
         {/* =========================================================================
-            4. MÀN HÌNH TRẢ LỜI CÂU HỎI (STATUS: QUESTION)
+            4. MÀN HÌNH TRẢ LỜI CÂU HỎI (STATUS: QUESTION) - SCALE NHƯ QUẢN TRÒ
            ========================================================================= */}
         {currentPlayer && room && room.status === 'QUESTION' && currentQ && (
-          <div className="flex-1 flex flex-col justify-between py-1">
-            <div className="flex items-center justify-between p-2.5 rounded-xl academic-card border-slate-800 mb-2">
-              <div className="flex items-center space-x-2">
-                <span className="text-lg">{TEAMS[currentPlayer.teamId]?.icon}</span>
+          <div className="flex-1 flex flex-col justify-between py-2 sm:py-4">
+            {/* Top Status Header */}
+            <div className="flex items-center justify-between p-3 sm:p-4 rounded-2xl academic-card border-slate-800 bg-slate-900/80 mb-3 sm:mb-4 shadow-md">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl sm:text-3xl">{TEAMS[currentPlayer.teamId]?.icon}</span>
                 <div>
-                  <div className="text-xs font-serif font-bold text-slate-100 truncate max-w-[120px]">
+                  <div className="text-xs sm:text-base font-serif font-bold text-slate-100 truncate max-w-[160px] sm:max-w-xs">
                     {currentPlayer.name}
                   </div>
-                  <div className="text-[10px] text-amber-400 font-mono font-semibold">
-                    {currentPlayer.score.toLocaleString()}đ
+                  <div className="text-[11px] sm:text-xs text-amber-400 font-mono font-semibold">
+                    {TEAMS[currentPlayer.teamId]?.name} · {currentPlayer.score.toLocaleString()}đ
                   </div>
                 </div>
               </div>
 
-              {currentPlayer.streak > 0 && (
-                <div className="flex items-center space-x-1 px-2 py-0.5 rounded-md bg-amber-950/50 border border-amber-800/40 text-amber-300 text-xs font-mono font-bold">
-                  <Flame className="w-3 h-3 text-amber-400" />
-                  <span>Chuỗi x{currentPlayer.streak}</span>
-                </div>
-              )}
+              <div className="flex items-center space-x-2">
+                {currentQ.round === 2 && (
+                  <div className="hidden sm:flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-amber-950/40 border border-amber-800/40 text-amber-300 text-xs font-semibold animate-pulse">
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Đồng Thuận x2</span>
+                  </div>
+                )}
+                {currentPlayer.streak > 0 && (
+                  <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-amber-950/60 border border-amber-800/50 text-amber-300 text-xs sm:text-sm font-mono font-bold">
+                    <Flame className="w-3.5 h-3.5 text-amber-400" />
+                    <span>x{currentPlayer.streak}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Question Box */}
-            <div className="p-3.5 rounded-xl academic-card border-slate-700/80 bg-slate-900/80 mb-2">
-              <span className="text-[10px] font-semibold uppercase text-slate-400">
-                {currentQ.round === 1
-                  ? `Vòng 1 · Câu ${room.currentQuestionIndex + 1}/5`
-                  : `Vòng 2 · Tình huống ${room.currentQuestionIndex - 4}/5`}
-              </span>
-              <h3 className="text-xs sm:text-sm font-serif font-bold text-slate-100 mt-0.5 leading-snug">
-                {currentQ.text}
-              </h3>
+            {/* Question Box (Responsive layout: Context & Question on Left, Image on Right) */}
+            <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl academic-card border-slate-700/80 bg-slate-900/90 mb-3 sm:mb-5 shadow-xl">
+              <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 items-start">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] sm:text-xs font-semibold uppercase text-slate-300">
+                      {currentQ.round === 1
+                        ? `Vòng 1 · Câu hỏi lý luận ${room.currentQuestionIndex + 1}/5`
+                        : `Vòng 2 · Tình huống thực tiễn ${room.currentQuestionIndex - 4}/5`}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-slate-400 font-mono">
+                      ⏱ {currentQ.timeLimit}s
+                    </span>
+                  </div>
 
-              {currentQ.imageUrl && (
-                <div className="mt-2 rounded-lg overflow-hidden border border-slate-700/80 bg-slate-950">
-                  <img
-                    src={currentQ.imageUrl}
-                    alt="Tư liệu"
-                    className="w-full h-28 object-cover"
-                  />
-                  {currentQ.imageCaption && (
-                    <p className="text-[10px] text-slate-400 p-1 italic truncate">
-                      {currentQ.imageCaption}
-                    </p>
+                  {currentQ.context && (
+                    <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 mb-2.5 text-slate-300 text-xs sm:text-sm leading-relaxed">
+                      <strong className="text-amber-400">📖 Bối cảnh lịch sử:</strong>{' '}
+                      {currentQ.context}
+                    </div>
                   )}
+
+                  <h3 className="text-sm sm:text-lg md:text-xl font-serif font-bold text-slate-100 leading-snug">
+                    {currentQ.text}
+                  </h3>
                 </div>
-              )}
+
+                {/* Documentary Image for Round 2 */}
+                {currentQ.imageUrl && (
+                  <div className="w-full lg:w-72 shrink-0 rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-1.5 shadow-md">
+                    <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-slate-900">
+                      <img
+                        src={currentQ.imageUrl}
+                        alt="Tư liệu"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {currentQ.imageCaption && (
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 px-1 italic truncate">
+                        {currentQ.imageCaption}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* 4 Answer Buttons */}
-            <div className="grid grid-cols-1 gap-2 mb-2">
+            {/* 4 Answer Options (2x2 Grid on tablet/desktop, 1 col on mobile) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3.5 mb-3 sm:mb-4">
               {currentQ.options.map((opt, idx) => {
                 const labels = ['A', 'B', 'C', 'D'];
                 const isSelected =
@@ -458,18 +487,18 @@ export default function PlayPage() {
                     type="button"
                     disabled={hasAnswered}
                     onClick={() => handleAnswer(idx)}
-                    className={`p-3 rounded-xl border text-left transition-colors flex items-center space-x-2.5 ${
+                    className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border text-left transition-all flex items-start space-x-3 ${
                       isSelected
-                        ? 'border-amber-500 bg-amber-950/50'
+                        ? 'border-amber-500 bg-amber-950/50 ring-2 ring-amber-500/50 shadow-lg'
                         : hasAnswered
                         ? 'opacity-35 border-slate-800 bg-slate-950/40'
-                        : 'border-slate-800 bg-slate-900/70 hover:border-slate-700 hover:bg-slate-900 active:bg-slate-800'
+                        : 'border-slate-800 bg-slate-900/70 hover:border-slate-700 hover:bg-slate-900 active:scale-[0.99] shadow-sm'
                     }`}
                   >
-                    <span className="w-6 h-6 rounded-md bg-slate-800 border border-slate-700 text-slate-200 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                    <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 font-mono font-bold text-xs sm:text-sm flex items-center justify-center shrink-0 shadow-inner">
                       {labels[idx]}
                     </span>
-                    <span className="text-xs text-slate-200 font-medium leading-tight">
+                    <span className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed pt-0.5">
                       {opt}
                     </span>
                   </button>
@@ -478,7 +507,7 @@ export default function PlayPage() {
             </div>
 
             {(selectedAnswer !== null || currentPlayer.lastAnswer !== undefined) && (
-              <div className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-center text-slate-300 text-xs font-medium">
+              <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-700 text-center text-slate-200 text-xs sm:text-sm font-medium shadow-md animate-in fade-in">
                 ✓ Đã gửi đáp án · Đang đợi quản trò công bố kết quả...
               </div>
             )}
@@ -489,44 +518,46 @@ export default function PlayPage() {
             5. MÀN HÌNH KẾT QUẢ CÂU HỎI (STATUS: REVEAL)
            ========================================================================= */}
         {currentPlayer && room && room.status === 'REVEAL' && currentQ && (
-          <div className="p-5 rounded-2xl academic-card border-slate-700/80 bg-slate-900/90 text-center">
+          <div className="max-w-2xl w-full mx-auto p-6 sm:p-8 rounded-3xl academic-card border-slate-700/80 bg-slate-900/90 text-center shadow-2xl animate-in zoom-in-95 duration-200">
             {currentPlayer.isCorrect ? (
               <>
-                <div className="w-11 h-11 rounded-full bg-emerald-950/70 border border-emerald-500 flex items-center justify-center mx-auto mb-2 text-xl">
+                <div className="w-14 h-14 rounded-full bg-emerald-950/70 border border-emerald-500 flex items-center justify-center mx-auto mb-3 text-2xl shadow-lg">
                   ✓
                 </div>
-                <h3 className="text-lg font-serif font-bold text-emerald-400">
+                <h3 className="text-xl sm:text-2xl font-serif font-bold text-emerald-400">
                   CHÍNH XÁC
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">Bạn đã ghi điểm cho khối liên minh</p>
+                <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                  Bạn đã ghi điểm cho {TEAMS[currentPlayer.teamId]?.name}
+                </p>
 
-                <div className="my-4 p-3 rounded-xl bg-slate-950 border border-slate-800">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold">ĐIỂM NHẬN ĐƯỢC</div>
-                  <div className="text-2xl font-bold text-amber-400 font-mono mt-0.5">
+                <div className="my-5 p-4 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner">
+                  <div className="text-[11px] text-slate-400 uppercase font-semibold">ĐIỂM NHẬN ĐƯỢC</div>
+                  <div className="text-3xl font-bold text-amber-400 font-mono mt-1">
                     +{(currentPlayer.pointsEarned || 0).toLocaleString()}đ
                   </div>
                   {currentPlayer.streak > 1 && (
-                    <div className="text-xs text-amber-300 font-semibold mt-0.5">
-                      🔥 Chuỗi đúng x{currentPlayer.streak}
+                    <div className="text-xs sm:text-sm text-amber-300 font-semibold mt-1">
+                      🔥 Chuỗi đúng liên tiếp x{currentPlayer.streak}
                     </div>
                   )}
                 </div>
               </>
             ) : (
               <>
-                <div className="w-11 h-11 rounded-full bg-red-950/70 border border-red-500 flex items-center justify-center mx-auto mb-2 text-xl">
+                <div className="w-14 h-14 rounded-full bg-red-950/70 border border-red-500 flex items-center justify-center mx-auto mb-3 text-2xl shadow-lg">
                   ✕
                 </div>
-                <h3 className="text-lg font-serif font-bold text-red-400">
+                <h3 className="text-xl sm:text-2xl font-serif font-bold text-red-400">
                   CHƯA CHÍNH XÁC
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Đáp án đúng là phương án {['A', 'B', 'C', 'D'][currentQ.correctIndex]}
+                <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                  Đáp án đúng là phương án <strong>{['A', 'B', 'C', 'D'][currentQ.correctIndex]}</strong>
                 </p>
 
-                <div className="my-4 p-3 rounded-xl bg-slate-950 border border-slate-800">
-                  <div className="text-[10px] text-slate-400 uppercase font-semibold">ĐIỂM NHẬN ĐƯỢC</div>
-                  <div className="text-xl font-bold text-slate-500 font-mono mt-0.5">
+                <div className="my-5 p-4 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner">
+                  <div className="text-[11px] text-slate-400 uppercase font-semibold">ĐIỂM NHẬN ĐƯỢC</div>
+                  <div className="text-2xl font-bold text-slate-500 font-mono mt-1">
                     +0đ
                   </div>
                 </div>
@@ -534,8 +565,8 @@ export default function PlayPage() {
             )}
 
             {currentQ.explanation && (
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-left text-xs text-slate-300">
-                <strong className="text-amber-400">💡 Phân tích:</strong>{' '}
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-left text-xs sm:text-sm text-slate-300 leading-relaxed shadow-inner">
+                <strong className="text-amber-400">💡 Phân tích & Giải thích lý luận:</strong>{' '}
                 {currentQ.explanation}
               </div>
             )}
@@ -546,19 +577,19 @@ export default function PlayPage() {
             6. MÀN HÌNH BẢNG XẾP HẠNG (STATUS: LEADERBOARD)
            ========================================================================= */}
         {currentPlayer && room && room.status === 'LEADERBOARD' && (
-          <div className="p-5 rounded-2xl academic-card border-slate-700/80 bg-slate-900/90 text-center">
-            <Trophy className="w-7 h-7 text-amber-400 mx-auto mb-1" />
-            <h3 className="text-base font-serif font-bold text-slate-100">BẢNG TỔNG SẮP</h3>
-            <p className="text-xs text-slate-400 mb-2.5">Điểm số hiện tại của bạn và các khối</p>
+          <div className="max-w-2xl w-full mx-auto p-6 sm:p-8 rounded-3xl academic-card border-slate-700/80 bg-slate-900/90 text-center shadow-2xl">
+            <Trophy className="w-9 h-9 text-amber-400 mx-auto mb-2" />
+            <h3 className="text-lg sm:text-xl font-serif font-bold text-slate-100">BẢNG TỔNG SẮP HỌC THUẬT</h3>
+            <p className="text-xs sm:text-sm text-slate-400 mb-4">Điểm số hiện tại của bạn và các khối liên minh</p>
 
-            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 mb-2.5">
-              <div className="text-[10px] text-slate-400 uppercase font-semibold">ĐIỂM TỔNG CÁ NHÂN</div>
-              <div className="text-xl font-bold text-amber-400 font-mono mt-0.5">
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 mb-4 shadow-inner">
+              <div className="text-[11px] text-slate-400 uppercase font-semibold">ĐIỂM TỔNG CÁ NHÂN</div>
+              <div className="text-2xl sm:text-3xl font-bold text-amber-400 font-mono mt-1">
                 {currentPlayer.score.toLocaleString()}đ
               </div>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-left space-y-1">
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2 shadow-inner">
               {Object.keys(room.teams)
                 .map((k) => {
                   const tid = k as TeamId;
@@ -568,18 +599,18 @@ export default function PlayPage() {
                 .map((t, idx) => (
                   <div
                     key={t.id}
-                    className={`p-1.5 rounded-lg text-xs flex items-center justify-between ${
+                    className={`p-2.5 rounded-xl text-xs sm:text-sm flex items-center justify-between ${
                       t.id === currentPlayer.teamId
-                        ? 'bg-amber-950/40 border border-amber-800/40 text-amber-200 font-semibold'
+                        ? 'bg-amber-950/40 border border-amber-800/40 text-amber-200 font-semibold shadow-sm'
                         : 'bg-slate-900/60 border border-slate-800 text-slate-300'
                     }`}
                   >
-                    <div className="flex items-center space-x-1.5">
-                      <span className="font-mono font-bold text-slate-400">#{idx + 1}</span>
-                      <span>{t.icon}</span>
-                      <span>{t.shortName}</span>
+                    <div className="flex items-center space-x-2.5">
+                      <span className="font-mono font-bold text-slate-400 w-5">#{idx + 1}</span>
+                      <span className="text-lg">{t.icon}</span>
+                      <span className="font-medium">{t.name}</span>
                     </div>
-                    <span className="font-mono font-bold">{t.score.toLocaleString()}đ</span>
+                    <span className="font-mono font-bold text-amber-300">{t.score.toLocaleString()}đ</span>
                   </div>
                 ))}
             </div>
@@ -590,26 +621,26 @@ export default function PlayPage() {
             7. MÀN HÌNH TỔNG KẾT (STATUS: FINISHED)
            ========================================================================= */}
         {currentPlayer && room && room.status === 'FINISHED' && (
-          <div className="p-5 rounded-2xl academic-card-gold border-amber-500/50 bg-slate-900/90 text-center">
-            <div className="text-3xl mb-1.5">🏆</div>
-            <h3 className="text-lg font-serif font-bold text-amber-300">
+          <div className="max-w-2xl w-full mx-auto p-6 sm:p-8 rounded-3xl academic-card-gold border-amber-500/50 bg-slate-900/90 text-center shadow-2xl">
+            <div className="text-4xl mb-2">🏆</div>
+            <h3 className="text-xl sm:text-2xl font-serif font-bold text-amber-300">
               HOÀN THÀNH XUẤT SẮC
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               Bạn đã cùng {TEAMS[currentPlayer.teamId]?.name} hoàn thành bài kiểm tra học thuật!
             </p>
 
-            <div className="my-4 p-3 rounded-xl bg-slate-950 border border-amber-800/40">
-              <div className="text-[10px] text-amber-300/80 font-semibold uppercase">
+            <div className="my-5 p-5 rounded-2xl bg-slate-950 border border-amber-800/40 shadow-inner">
+              <div className="text-xs text-amber-300/80 font-semibold uppercase">
                 TỔNG ĐIỂM CÁ NHÂN
               </div>
-              <div className="text-2xl font-bold text-amber-400 font-mono mt-0.5">
+              <div className="text-3xl sm:text-4xl font-bold text-amber-400 font-mono mt-1">
                 {currentPlayer.score.toLocaleString()}đ
               </div>
             </div>
 
-            <p className="text-xs text-slate-400">
-              Hãy nhìn lên màn hình máy chiếu để theo dõi Bảng danh dự học thuật!
+            <p className="text-xs sm:text-sm text-slate-400">
+              Hãy nhìn lên màn hình máy chiếu để theo dõi Bảng danh dự học thuật & Bục vinh danh!
             </p>
           </div>
         )}
@@ -618,8 +649,8 @@ export default function PlayPage() {
             8. MÀN HÌNH PHÒNG ĐÃ ĐÓNG (STATUS: CLOSED)
            ========================================================================= */}
         {room && room.status === 'CLOSED' && (
-          <div className="p-6 rounded-2xl academic-card border-red-500/40 bg-slate-900/90 text-center">
-            <div className="w-12 h-12 rounded-full bg-red-950/70 border border-red-500 flex items-center justify-center mx-auto mb-3 text-2xl">
+          <div className="max-w-md w-full mx-auto p-6 sm:p-8 rounded-3xl academic-card border-red-500/40 bg-slate-900/90 text-center shadow-2xl">
+            <div className="w-14 h-14 rounded-full bg-red-950/70 border border-red-500 flex items-center justify-center mx-auto mb-3 text-2xl shadow-md">
               🚪
             </div>
             <h3 className="text-xl font-serif font-bold text-red-400">
@@ -633,7 +664,7 @@ export default function PlayPage() {
               <Link
                 href="/"
                 onClick={() => handleLeaveRoom()}
-                className="inline-flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm border border-slate-700 transition-colors"
+                className="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs sm:text-sm border border-slate-700 transition-colors shadow-md"
               >
                 <span>VỀ TRANG CHỦ</span>
               </Link>
