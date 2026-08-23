@@ -68,7 +68,7 @@ export async function saveRoomState(state: RoomState): Promise<void> {
       const roomRef = ref(db, `rooms/${state.pin}`);
       await set(roomRef, cleanState);
     } catch (e) {
-      console.warn('Firebase sync notice:', e);
+      console.warn('Firebase sync save notice:', e);
     }
   }
 }
@@ -78,32 +78,12 @@ export function subscribeToRoom(
   pin: string,
   callback: (state: RoomState | null) => void
 ): () => void {
-  let lastNotifiedVersion = 0;
-  let lastNotifiedStatus = '';
-
-  const notify = (data: RoomState | null) => {
-    if (!data) return;
-    const version = data.lastUpdated || 0;
-    const statusKey = `${data.status}_${data.currentQuestionIndex}`;
-    // Chấp nhận update nếu version mới HƠN hoặc trạng thái game thay đổi
-    if (version > lastNotifiedVersion || statusKey !== lastNotifiedStatus) {
-      lastNotifiedVersion = version;
-      lastNotifiedStatus = statusKey;
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, JSON.stringify(data));
-        } catch {}
-      }
-      callback(data);
-    }
-  };
-
   // 1. Lấy dữ liệu ban đầu từ LocalStorage
   if (typeof window !== 'undefined') {
     try {
       const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`);
       if (saved) {
-        notify(JSON.parse(saved));
+        callback(JSON.parse(saved));
       }
     } catch {}
   }
@@ -113,12 +93,29 @@ export function subscribeToRoom(
   if (isFirebaseConfigured && db) {
     try {
       const roomRef = ref(db, `rooms/${pin}`);
-      unsubscribeFirebase = onValue(roomRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          notify(data as RoomState);
+      unsubscribeFirebase = onValue(
+        roomRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val() as RoomState;
+            if (typeof window !== 'undefined') {
+              try {
+                localStorage.setItem(
+                  `${LOCAL_STORAGE_KEY_PREFIX}${pin}`,
+                  JSON.stringify(data)
+                );
+              } catch {}
+            }
+            callback(data);
+          } else {
+            // Phòng chưa tạo hoặc đã bị xóa trên Firebase
+            callback(null);
+          }
+        },
+        (error) => {
+          console.warn('Firebase realtime subscription warning:', error);
         }
-      });
+      );
     } catch (e) {
       console.warn('Firebase subscribe notice:', e);
     }
@@ -127,7 +124,7 @@ export function subscribeToRoom(
   // 3. Lắng nghe qua BroadcastChannel giữa các Tab trình duyệt (0ms same-origin)
   const handleMessage = (event: MessageEvent) => {
     if (event.data?.type === 'ROOM_UPDATE' && event.data?.pin === pin && event.data.state) {
-      notify(event.data.state);
+      callback(event.data.state);
     }
   };
 
@@ -135,7 +132,7 @@ export function subscribeToRoom(
   const handleStorage = (e: StorageEvent) => {
     if (e.key === `${LOCAL_STORAGE_KEY_PREFIX}${pin}` && e.newValue) {
       try {
-        notify(JSON.parse(e.newValue));
+        callback(JSON.parse(e.newValue));
       } catch {}
     }
   };
@@ -154,8 +151,33 @@ export function subscribeToRoom(
   };
 }
 
-// Lấy phòng 1 lần
+// Lấy phòng 1 lần (Luôn ưu tiên Firebase để đảm bảo dữ liệu mới nhất trên cross-device)
 export async function getRoomState(pin: string): Promise<RoomState | null> {
+  if (isFirebaseConfigured && db) {
+    try {
+      const roomRef = ref(db, `rooms/${pin}`);
+      const timeoutPromise = new Promise<null>((resolve) =>
+        setTimeout(() => resolve(null), 3000)
+      );
+      const snapshot = await Promise.race([get(roomRef), timeoutPromise]);
+      if (snapshot && 'exists' in snapshot && snapshot.exists()) {
+        const room = snapshot.val() as RoomState;
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(
+              `${LOCAL_STORAGE_KEY_PREFIX}${pin}`,
+              JSON.stringify(room)
+            );
+          } catch {}
+        }
+        return room;
+      }
+    } catch (e) {
+      console.warn('Firebase getRoomState notice:', e);
+    }
+  }
+
+  // Fallback lấy từ LocalStorage nếu mất mạng hoặc offline
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`);
     if (saved) {
@@ -163,19 +185,6 @@ export async function getRoomState(pin: string): Promise<RoomState | null> {
         return JSON.parse(saved);
       } catch {}
     }
-  }
-
-  if (isFirebaseConfigured && db) {
-    try {
-      const roomRef = ref(db, `rooms/${pin}`);
-      const timeoutPromise = new Promise<null>((resolve) =>
-        setTimeout(() => resolve(null), 1000)
-      );
-      const snapshot = await Promise.race([get(roomRef), timeoutPromise]);
-      if (snapshot && 'exists' in snapshot && snapshot.exists()) {
-        return snapshot.val() as RoomState;
-      }
-    } catch {}
   }
 
   return null;
@@ -190,7 +199,11 @@ export async function joinRoom(
 ): Promise<{ success: boolean; playerId: string; message?: string; room?: RoomState }> {
   let room = await getRoomState(pin);
   if (!room) {
-    room = createInitialRoom(pin);
+    return {
+      success: false,
+      playerId: '',
+      message: 'Không tìm thấy phòng với mã PIN này. Vui lòng kiểm tra lại mã PIN từ Quản trò!',
+    };
   }
 
   if (room.status !== 'LOBBY') {
