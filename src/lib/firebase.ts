@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getDatabase, Database } from 'firebase/database';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyD7VB4OrIm779uJ7mDJbX8zSIoiCKM8Dg8',
@@ -21,6 +22,14 @@ if (typeof window !== 'undefined' && isFirebaseConfigured) {
   try {
     const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     dbInstance = getDatabase(app);
+
+    // Tự động đăng nhập vô danh (Anonymous Authentication) ngầm bên dưới
+    const auth = getAuth(app);
+    if (!auth.currentUser) {
+      signInAnonymously(auth).catch((err) => {
+        console.warn('Firebase Anonymous Auth notice:', err);
+      });
+    }
   } catch (err) {
     console.warn('Firebase init error, using Local Sync fallback:', err);
   }
