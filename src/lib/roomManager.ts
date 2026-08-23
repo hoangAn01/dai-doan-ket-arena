@@ -43,11 +43,11 @@ export function createInitialRoom(pin: string): RoomState {
   };
 }
 
-// Lưu trữ và đồng bộ trạng thái phòng (LocalStorage + BroadcastChannel + Firebase + Server Backup)
+// Lưu trữ và đồng bộ trạng thái phòng (LocalStorage + BroadcastChannel + Firebase)
 export async function saveRoomState(state: RoomState): Promise<void> {
   const cleanState = { ...state, lastUpdated: Date.now() };
 
-  // 1. Luôn cập nhật LocalStorage & BroadcastChannel trước (đáp ứng tức thì 0ms cho multi-tab)
+  // 1. Cập nhật LocalStorage & BroadcastChannel trước (đáp ứng tức thì 0ms cho multi-tab)
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(
@@ -62,42 +62,33 @@ export async function saveRoomState(state: RoomState): Promise<void> {
     } catch {}
   }
 
-  // 2. Gửi Server API backup ngầm cho các thiết bị khác mạng
-  fetch('/api/room', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'SAVE_STATE', pin: state.pin, state: cleanState }),
-  }).catch(() => {});
-
-  // 3. Đồng bộ Firebase Realtime Database nếu được cấu hình
+  // 2. Đồng bộ Firebase Realtime Database (nguồn đồng bộ chính cho cross-device)
   if (isFirebaseConfigured && db) {
     try {
       const roomRef = ref(db, `rooms/${state.pin}`);
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Firebase timeout')), 2000)
-      );
-      await Promise.race([set(roomRef, cleanState), timeoutPromise]).catch(() => {});
+      await set(roomRef, cleanState);
     } catch (e) {
       console.warn('Firebase sync notice:', e);
     }
   }
 }
 
-// Lắng nghe cập nhật phòng realtime (Firebase + Server Polling + BroadcastChannel)
+// Lắng nghe cập nhật phòng realtime (Firebase Push + BroadcastChannel + StorageEvent)
 export function subscribeToRoom(
   pin: string,
   callback: (state: RoomState | null) => void
 ): () => void {
-  let lastNotifiedStr = '';
+  let lastNotifiedVersion = 0;
 
   const notify = (data: RoomState | null) => {
     if (!data) return;
-    const str = JSON.stringify(data);
-    if (str !== lastNotifiedStr) {
-      lastNotifiedStr = str;
+    // Dùng lastUpdated timestamp thay vì JSON.stringify để tiết kiệm CPU
+    const version = data.lastUpdated || 0;
+    if (version > lastNotifiedVersion) {
+      lastNotifiedVersion = version;
       if (typeof window !== 'undefined') {
         try {
-          localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, str);
+          localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, JSON.stringify(data));
         } catch {}
       }
       callback(data);
@@ -114,17 +105,7 @@ export function subscribeToRoom(
     } catch {}
   }
 
-  // 2. Thử lấy dữ liệu ban đầu từ Server Backup
-  fetch(`/api/room?pin=${pin}`)
-    .then((res) => res.json())
-    .then((resData) => {
-      if (resData.success && resData.room) {
-        notify(resData.room);
-      }
-    })
-    .catch(() => {});
-
-  // 3. Nếu có cấu hình Firebase
+  // 2. Firebase Realtime Push (~100ms, nguồn đồng bộ chính cho cross-device)
   let unsubscribeFirebase: (() => void) | null = null;
   if (isFirebaseConfigured && db) {
     try {
@@ -140,13 +121,14 @@ export function subscribeToRoom(
     }
   }
 
-  // 4. Lắng nghe qua BroadcastChannel giữa các Tab trình duyệt
+  // 3. Lắng nghe qua BroadcastChannel giữa các Tab trình duyệt (0ms same-origin)
   const handleMessage = (event: MessageEvent) => {
     if (event.data?.type === 'ROOM_UPDATE' && event.data?.pin === pin && event.data.state) {
       notify(event.data.state);
     }
   };
 
+  // 4. Lắng nghe sự kiện storage (khi tab khác cùng máy cập nhật)
   const handleStorage = (e: StorageEvent) => {
     if (e.key === `${LOCAL_STORAGE_KEY_PREFIX}${pin}` && e.newValue) {
       try {
@@ -155,29 +137,12 @@ export function subscribeToRoom(
     }
   };
 
-  // 5. Server Backup Polling (mỗi 750ms) cho các thiết bị khác mạng
-  let isSubscribed = true;
-  const pollInterval = setInterval(async () => {
-    if (!isSubscribed) return;
-    try {
-      const res = await fetch(`/api/room?pin=${pin}`, { cache: 'no-store' });
-      if (res.ok) {
-        const resData = await res.json();
-        if (resData.success && resData.room) {
-          notify(resData.room);
-        }
-      }
-    } catch {}
-  }, 750);
-
   if (typeof window !== 'undefined') {
     window.addEventListener('storage', handleStorage);
     localBroadcast?.addEventListener('message', handleMessage);
   }
 
   return () => {
-    isSubscribed = false;
-    clearInterval(pollInterval);
     if (unsubscribeFirebase) unsubscribeFirebase();
     if (typeof window !== 'undefined') {
       window.removeEventListener('storage', handleStorage);
