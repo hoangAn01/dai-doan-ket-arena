@@ -46,19 +46,4 @@ npm run dev
 
 ---
 
-## 🌐 HƯỚNG DẪN DEPLOY LÊN VERCEL
 
-1. **Đẩy code lên GitHub:**
-   ```bash
-   git init
-   git add .
-   git commit -m "feat: complete dai doan ket arena web game"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/dai-doan-ket-arena.git
-   git push -u origin main
-   ```
-
-2. **Deploy trên Vercel:**
-   - Truy cập [vercel.com](https://vercel.com) -> **Add New Project** -> Chọn repository vừa tạo.
-   - (Tùy chọn) Điền các biến môi trường Firebase trong file `.env.example` vào mục **Environment Variables** trên Vercel.
-   - Nhấn **Deploy** và nhận đường link website trực tiếp cho cả lớp quét mã!
