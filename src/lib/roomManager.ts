@@ -272,6 +272,31 @@ export async function joinRoom(
   return { success: true, playerId: pId, room: updatedRoom };
 }
 
+// Người chơi rời khỏi phòng (giải phóng vị trí trong khối cũ)
+export async function leaveRoom(pin: string, playerId: string): Promise<RoomState | null> {
+  const room = await getRoomState(pin);
+  if (!room || !playerId || !room.players?.[playerId]) return null;
+
+  const updatedPlayers = { ...room.players };
+  delete updatedPlayers[playerId];
+
+  const updatedTeams = { ...room.teams };
+  Object.keys(updatedTeams).forEach((tKey) => {
+    const tid = tKey as TeamId;
+    const count = Object.values(updatedPlayers).filter((p) => p.teamId === tid).length;
+    updatedTeams[tid] = { ...updatedTeams[tid], count };
+  });
+
+  const updatedRoom: RoomState = {
+    ...room,
+    players: updatedPlayers,
+    teams: updatedTeams,
+  };
+
+  await saveRoomState(updatedRoom);
+  return updatedRoom;
+}
+
 // Người chơi gửi đáp án
 export async function submitAnswer(
   pin: string,

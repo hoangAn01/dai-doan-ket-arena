@@ -26,6 +26,7 @@ import {
   subscribeToRoom,
   joinRoom,
   submitAnswer,
+  leaveRoom,
 } from '@/lib/roomManager';
 
 export default function PlayPage() {
@@ -138,9 +139,12 @@ export default function PlayPage() {
     }
   };
 
-  // Thoát hoặc đổi phòng
-  const handleLeaveRoom = () => {
+  // Thoát hoặc đổi khối / đổi phòng
+  const handleLeaveRoom = async () => {
     sound.playClick();
+    if (pin && playerId) {
+      await leaveRoom(pin, playerId);
+    }
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('arena_player_id');
       sessionStorage.removeItem('arena_player_pin');
@@ -163,6 +167,8 @@ export default function PlayPage() {
         pin={room?.pin || pin}
         round={room?.round}
         showBack={Boolean(currentPlayer)}
+        onBackClick={handleLeaveRoom}
+        endButtonText="Thoát khối"
       />
 
       <main className="flex-1 max-w-md w-full mx-auto px-4 py-5 flex flex-col justify-center">
