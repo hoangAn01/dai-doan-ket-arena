@@ -1,5 +1,5 @@
 import { db, isFirebaseConfigured } from './firebase';
-import { ref, set, onValue, get } from 'firebase/database';
+import { ref, set, onValue, get, remove } from 'firebase/database';
 import { RoomState, TeamId, Player } from './types';
 import { TEAMS } from './teams';
 import { calculateScore, getTeamMultiplier } from './scoring';
@@ -589,22 +589,49 @@ export async function finishRoomEarly(pin: string): Promise<RoomState | null> {
   return finishedRoom;
 }
 
-// Đóng và giải tán phòng
+// Đóng và giải tán phòng — XÓA khỏi Firebase để không tốn kết nối
 export async function closeAndDestroyRoom(pin: string): Promise<void> {
   const room = await getRoomState(pin);
   if (!room) return;
 
+  // 1. Thông báo CLOSED cho các client đang lắng nghe trước khi xóa
   const closedRoom: RoomState = {
     ...room,
     status: 'CLOSED',
   };
-
   await saveRoomState(closedRoom);
 
+  // 2. Chờ 2s để client nhận được CLOSED, rồi XÓA hẳn khỏi Firebase
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  if (isFirebaseConfigured && db) {
+    try {
+      const roomRef = ref(db, `rooms/${pin}`);
+      await remove(roomRef);
+    } catch (err) {
+      console.warn('[closeAndDestroyRoom] Firebase delete failed:', err);
+    }
+  }
+
+  // 3. Dọn LocalStorage
   if (typeof window !== 'undefined') {
     try {
       localStorage.removeItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`);
       localStorage.removeItem('arena_host_pin');
     } catch {}
+  }
+}
+
+// Xóa một phòng cụ thể khỏi Firebase (dùng cho cleanup thủ công)
+export async function deleteRoomFromFirebase(pin: string): Promise<void> {
+  if (!isFirebaseConfigured || !db) return;
+  try {
+    await remove(ref(db, `rooms/${pin}`));
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`);
+    }
+    console.log(`[cleanup] Đã xóa phòng ${pin} khỏi Firebase.`);
+  } catch (err) {
+    console.warn(`[cleanup] Xóa phòng ${pin} thất bại:`, err);
   }
 }
