@@ -42,6 +42,7 @@ import {
   getRoomState,
   finishRoomEarly,
   closeAndDestroyRoom,
+  showLeaderboard,
 } from '@/lib/roomManager';
 
 export default function HostPage() {
@@ -169,12 +170,8 @@ export default function HostPage() {
 
   const handleShowLeaderboard = async () => {
     sound.playClick();
-    const updated: RoomState = {
-      ...room,
-      status: 'LEADERBOARD',
-    };
-    setRoom(updated);
-    await saveRoomState(updated);
+    const updated = await showLeaderboard(room.pin);
+    if (updated) setRoom(updated);
   };
 
   const handleFinishEarly = async () => {

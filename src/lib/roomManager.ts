@@ -1,5 +1,5 @@
 import { db, isFirebaseConfigured } from './firebase';
-import { ref, set, onValue, get, remove } from 'firebase/database';
+import { ref, set, onValue, get, remove, update } from 'firebase/database';
 import { RoomState, TeamId, Player } from './types';
 import { TEAMS } from './teams';
 import { calculateScore, getTeamMultiplier } from './scoring';
@@ -319,8 +319,7 @@ export async function submitAnswer(
     player.streak || 0
   );
 
-  const updatedPlayers = { ...room.players };
-  updatedPlayers[playerId] = {
+  const updatedPlayer = {
     ...player,
     lastAnswer: answerIndex,
     lastAnswerTime: Date.now(),
@@ -330,12 +329,36 @@ export async function submitAnswer(
     streak: scoreResult.newStreak,
   };
 
+  // Thay vì lưu toàn bộ dữ liệu phòng gây ra Race Condition (mất đáp án khi nhiều người gửi cùng lúc),
+  // chúng ta chỉ cập nhật riêng dữ liệu của player này trên Firebase
+  if (isFirebaseConfigured && db) {
+    try {
+      const playerRef = ref(db, `rooms/${pin}/players/${playerId}`);
+      await set(playerRef, JSON.parse(JSON.stringify(updatedPlayer)));
+    } catch (e) {
+      console.warn('Firebase submitAnswer save error:', e);
+    }
+  }
+
+  // Cập nhật local state cho trình duyệt hiện tại để UI phản hồi ngay lập tức
   const updatedRoom: RoomState = {
     ...room,
-    players: updatedPlayers,
+    players: {
+      ...room.players,
+      [playerId]: updatedPlayer,
+    },
   };
 
-  await saveRoomState(updatedRoom);
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, JSON.stringify(updatedRoom));
+      localBroadcast?.postMessage({
+        type: 'ROOM_UPDATE',
+        pin,
+        state: updatedRoom,
+      });
+    } catch {}
+  }
 
   return {
     success: true,
@@ -349,6 +372,7 @@ export async function submitAnswer(
 export async function revealAnswersAndScoreTeams(pin: string): Promise<RoomState | null> {
   const room = await getRoomState(pin);
   if (!room) return null;
+  if (room.status === 'REVEAL') return room; // Chặn double-click
 
   const currentQ = QUESTIONS[room.currentQuestionIndex];
   const isRound2 = currentQ.round === 2;
@@ -364,8 +388,9 @@ export async function revealAnswersAndScoreTeams(pin: string): Promise<RoomState
   ];
 
   teamKeys.forEach((teamId) => {
+    // Chỉ lấy những thành viên ĐÃ NỘP BÀI (hoặc có mặt trong room) để tính Combo Đồng Thuận
     const teamMembers = Object.values(room.players || {}).filter(
-      (p) => p.teamId === teamId
+      (p) => p.teamId === teamId && p.lastAnswer !== undefined
     );
 
     let questionTeamPoints = teamMembers.reduce(
@@ -394,7 +419,25 @@ export async function revealAnswersAndScoreTeams(pin: string): Promise<RoomState
     teams: updatedTeams,
   };
 
-  await saveRoomState(updatedRoom);
+  // Dùng update thay vì saveRoomState để tránh đè mất đáp án người chơi gửi trễ
+  if (isFirebaseConfigured && db) {
+    try {
+      const updates: any = {};
+      updates['status'] = 'REVEAL';
+      updates['teams'] = updatedTeams;
+      await update(ref(db, `rooms/${pin}`), updates);
+    } catch (e) {
+      console.warn('Firebase reveal save error:', e);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, JSON.stringify(updatedRoom));
+      localBroadcast?.postMessage({ type: 'ROOM_UPDATE', pin, state: updatedRoom });
+    } catch {}
+  }
+
   return updatedRoom;
 }
 
@@ -402,6 +445,7 @@ export async function revealAnswersAndScoreTeams(pin: string): Promise<RoomState
 export async function startNextQuestion(pin: string): Promise<RoomState | null> {
   const room = await getRoomState(pin);
   if (!room) return null;
+  if (room.status === 'QUESTION') return room; // Chặn double-click
 
   // Nếu vừa hoàn thành Vòng 1 (câu 5, index 4) và đang chuyển sang Vòng 2
   if (room.status !== 'LOBBY' && room.currentQuestionIndex === 4 && room.status !== 'ROUND_TRANSITION') {
@@ -411,7 +455,16 @@ export async function startNextQuestion(pin: string): Promise<RoomState | null> 
       round: 2,
       currentQuestionIndex: 5,
     };
-    await saveRoomState(transitionRoom);
+    
+    if (isFirebaseConfigured && db) {
+      const updates: any = { status: 'ROUND_TRANSITION', round: 2, currentQuestionIndex: 5 };
+      await update(ref(db, `rooms/${pin}`), updates).catch(e => console.warn(e));
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, JSON.stringify(transitionRoom));
+      localBroadcast?.postMessage({ type: 'ROOM_UPDATE', pin, state: transitionRoom });
+    }
+    
     return transitionRoom;
   }
 
@@ -430,7 +483,15 @@ export async function startNextQuestion(pin: string): Promise<RoomState | null> 
       ...room,
       status: 'FINISHED',
     };
-    await saveRoomState(finishedRoom);
+    
+    if (isFirebaseConfigured && db) {
+      await update(ref(db, `rooms/${pin}`), { status: 'FINISHED' }).catch(e => console.warn(e));
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, JSON.stringify(finishedRoom));
+      localBroadcast?.postMessage({ type: 'ROOM_UPDATE', pin, state: finishedRoom });
+    }
+    
     return finishedRoom;
   }
 
@@ -447,17 +508,73 @@ export async function startNextQuestion(pin: string): Promise<RoomState | null> 
     resetPlayers[pId] = p;
   });
 
+  const now = Date.now();
   const updatedRoom: RoomState = {
     ...room,
     status: 'QUESTION',
     round: nextRound,
     currentQuestionIndex: nextIndex,
-    questionStartTime: Date.now(),
+    questionStartTime: now,
     timeLimit: question.timeLimit,
     players: resetPlayers,
   };
 
-  await saveRoomState(updatedRoom);
+  if (isFirebaseConfigured && db) {
+    try {
+      const updates: any = {};
+      updates['status'] = 'QUESTION';
+      updates['round'] = nextRound;
+      updates['currentQuestionIndex'] = nextIndex;
+      updates['questionStartTime'] = now;
+      updates['timeLimit'] = question.timeLimit;
+      Object.keys(resetPlayers).forEach(pId => {
+        updates[`players/${pId}/lastAnswer`] = null;
+        updates[`players/${pId}/lastAnswerTime`] = null;
+        updates[`players/${pId}/isCorrect`] = null;
+        updates[`players/${pId}/pointsEarned`] = null;
+      });
+      await update(ref(db, `rooms/${pin}`), updates);
+    } catch (e) {
+      console.warn('Firebase next question error:', e);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, JSON.stringify(updatedRoom));
+      localBroadcast?.postMessage({ type: 'ROOM_UPDATE', pin, state: updatedRoom });
+    } catch {}
+  }
+
+  return updatedRoom;
+}
+
+// Chuyển sang trạng thái LEADERBOARD
+export async function showLeaderboard(pin: string): Promise<RoomState | null> {
+  const room = await getRoomState(pin);
+  if (!room) return null;
+  if (room.status === 'LEADERBOARD') return room;
+
+  const updatedRoom: RoomState = {
+    ...room,
+    status: 'LEADERBOARD',
+  };
+
+  if (isFirebaseConfigured && db) {
+    try {
+      await update(ref(db, `rooms/${pin}`), { status: 'LEADERBOARD' });
+    } catch (e) {
+      console.warn('Firebase showLeaderboard error:', e);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(`${LOCAL_STORAGE_KEY_PREFIX}${pin}`, JSON.stringify(updatedRoom));
+      localBroadcast?.postMessage({ type: 'ROOM_UPDATE', pin, state: updatedRoom });
+    } catch {}
+  }
+
   return updatedRoom;
 }
 
