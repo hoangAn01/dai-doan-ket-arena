@@ -15,6 +15,8 @@ import {
   BookOpen,
   ArrowLeft,
   Zap,
+  HelpCircle,
+  X,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { RoomState, TeamId, Player } from '@/lib/types';
@@ -38,6 +40,7 @@ export default function PlayPage() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showRules, setShowRules] = useState(false);
 
   // Đọc PIN từ URL hoặc sessionStorage
   useEffect(() => {
@@ -672,6 +675,120 @@ export default function PlayPage() {
           </div>
         )}
       </main>
+
+      {/* ===== FLOATING LUẬT CHƠI BUTTON ===== */}
+      <button
+        onClick={() => setShowRules(true)}
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-2xl shadow-amber-900/50 transition-all hover:scale-105 active:scale-95 border border-amber-400/60"
+        title="Xem luật chơi"
+      >
+        <HelpCircle className="w-4 h-4 flex-shrink-0" />
+        <span>Luật chơi</span>
+      </button>
+
+      {/* ===== MODAL LUẬT CHƠI ===== */}
+      {showRules && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+          onClick={() => setShowRules(false)}
+        >
+          <div
+            className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl text-slate-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="sticky top-0 flex items-center justify-between px-5 py-4 bg-slate-900 border-b border-slate-700 rounded-t-2xl z-10">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-amber-400" />
+                <h2 className="text-base font-serif font-bold text-amber-400 uppercase tracking-wide">Hướng dẫn luật chơi</h2>
+              </div>
+              <button
+                onClick={() => setShowRules(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-5 text-sm">
+
+              {/* Tổng quan */}
+              <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/50">
+                <p className="text-amber-300 font-semibold text-xs uppercase tracking-wider mb-2">📋 Tổng quan</p>
+                <p className="text-slate-300 leading-relaxed">
+                  Đại Đoàn Kết Arena là cuộc thi học thuật gồm <span className="text-amber-400 font-bold">3 vòng</span>, mỗi vòng có cách tính điểm riêng.
+                  Mỗi khối liên minh gồm <span className="text-amber-400 font-bold">5 sinh viên</span>.
+                </p>
+              </div>
+
+              {/* Vòng 1 */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">1</div>
+                  <h3 className="font-bold text-slate-100">Vòng 1 — Khởi Động</h3>
+                </div>
+                <ul className="space-y-2 text-slate-300 leading-relaxed pl-9">
+                  <li className="flex items-start gap-2"><Zap className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Mỗi câu có <span className="text-white font-semibold ml-1">4 đáp án</span>, chọn 1 đáp án đúng.</li>
+                  <li className="flex items-start gap-2"><Clock className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Thời gian trả lời: <span className="text-white font-semibold ml-1">15 giây</span> mỗi câu.</li>
+                  <li className="flex items-start gap-2"><Trophy className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Trả lời đúng: <span className="text-green-400 font-semibold ml-1">+10 điểm</span>. Sai hoặc hết giờ: <span className="text-red-400 font-semibold ml-1">0 điểm</span>.</li>
+                  <li className="flex items-start gap-2"><Sparkles className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Trả lời nhanh nhận thêm <span className="text-amber-400 font-semibold ml-1">điểm thưởng tốc độ</span>.</li>
+                </ul>
+              </div>
+
+              <div className="border-t border-slate-800" />
+
+              {/* Vòng 2 */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">2</div>
+                  <h3 className="font-bold text-slate-100">Vòng 2 — Tăng Tốc</h3>
+                </div>
+                <ul className="space-y-2 text-slate-300 leading-relaxed pl-9">
+                  <li className="flex items-start gap-2"><Flame className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />Câu hỏi khó hơn, thời gian rút ngắn còn <span className="text-white font-semibold ml-1">10 giây</span>.</li>
+                  <li className="flex items-start gap-2"><Trophy className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />Trả lời đúng: <span className="text-green-400 font-semibold ml-1">+20 điểm</span> cộng thêm điểm tốc độ.</li>
+                  <li className="flex items-start gap-2"><Shield className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />Điểm của cả khối được <span className="text-amber-400 font-semibold ml-1">cộng dồn</span> theo đóng góp từng thành viên.</li>
+                </ul>
+              </div>
+
+              <div className="border-t border-slate-800" />
+
+              {/* Vòng 3 */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">3</div>
+                  <h3 className="font-bold text-slate-100">Vòng 3 — Chung Kết</h3>
+                </div>
+                <ul className="space-y-2 text-slate-300 leading-relaxed pl-9">
+                  <li className="flex items-start gap-2"><Award className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />Câu hỏi tổng hợp với độ khó cao nhất, thời gian <span className="text-white font-semibold ml-1">8 giây</span>.</li>
+                  <li className="flex items-start gap-2"><Trophy className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />Trả lời đúng: <span className="text-green-400 font-semibold ml-1">+30 điểm</span>.</li>
+                  <li className="flex items-start gap-2"><Sparkles className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />Khối có tổng điểm cao nhất sau 3 vòng <span className="text-amber-400 font-semibold ml-1">giành chiến thắng</span>!</li>
+                </ul>
+              </div>
+
+              <div className="border-t border-slate-800" />
+
+              {/* Lưu ý */}
+              <div className="p-4 rounded-xl bg-slate-800/60 border border-slate-700">
+                <p className="text-slate-400 font-semibold text-xs uppercase tracking-wider mb-2">💡 Lưu ý</p>
+                <ul className="space-y-1.5 text-slate-400 text-xs leading-relaxed">
+                  <li>• Mỗi người chỉ được chọn <strong className="text-slate-300">1 đáp án duy nhất</strong> cho mỗi câu hỏi.</li>
+                  <li>• Sau khi chọn, <strong className="text-slate-300">không thể thay đổi</strong> câu trả lời.</li>
+                  <li>• Điểm khối = tổng điểm của tất cả thành viên trong khối.</li>
+                  <li>• Kết quả từng câu hiển thị ngay sau khi hết thời gian.</li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => setShowRules(false)}
+                className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition-colors"
+              >
+                Đã hiểu, bắt đầu thi!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
