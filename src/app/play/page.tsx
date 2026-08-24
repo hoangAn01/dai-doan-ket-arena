@@ -717,22 +717,41 @@ export default function PlayPage() {
               <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/50">
                 <p className="text-amber-300 font-semibold text-xs uppercase tracking-wider mb-2">📋 Tổng quan</p>
                 <p className="text-slate-300 leading-relaxed">
-                  Đại Đoàn Kết Arena là cuộc thi học thuật gồm <span className="text-amber-400 font-bold">3 vòng</span>, mỗi vòng có cách tính điểm riêng.
-                  Mỗi khối liên minh gồm <span className="text-amber-400 font-bold">5 sinh viên</span>.
+                  <span className="text-amber-400 font-bold">Đại Đoàn Kết Arena</span> — Trò chơi học thuật môn
+                  {' '}<span className="text-white font-semibold">Tư tưởng Hồ Chí Minh (HCM202)</span>.{' '}
+                  Gồm <span className="text-amber-400 font-bold">2 vòng đấu chiến lược</span> với{' '}
+                  <span className="text-amber-400 font-bold">6 Khối liên minh</span> × <span className="text-amber-400 font-bold">5 sinh viên</span> = 30 người tham gia.
                 </p>
               </div>
+
+              {/* 6 Khối */}
+              <div>
+                <p className="text-slate-400 font-semibold text-xs uppercase tracking-wider mb-3">🏛️ 6 Khối liên minh</p>
+                <div className="space-y-1.5 text-xs text-slate-300">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50"><span>⚒️</span><span><strong className="text-slate-100">Khối Tiên Phong</strong> — Công nhân &amp; Nông dân</span></div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50"><span>💡</span><span><strong className="text-slate-100">Khối Trí Thức</strong> — Trí thức &amp; Tinh hoa</span></div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50"><span>⚡</span><span><strong className="text-slate-100">Khối Xung Kích</strong> — Thanh niên &amp; Tuổi trẻ</span></div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50"><span>🤝</span><span><strong className="text-slate-100">Khối Dân Tộc - Tôn Giáo</strong> — 54 Dân tộc anh em</span></div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50"><span>✈️</span><span><strong className="text-slate-100">Khối Kiều Bào</strong> — Người Việt Nam ở nước ngoài</span></div>
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50"><span>🌐</span><span><strong className="text-slate-100">Khối Bạn Bè Quốc Tế</strong> — Lực lượng yêu chuộng hòa bình</span></div>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-800" />
 
               {/* Vòng 1 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">1</div>
-                  <h3 className="font-bold text-slate-100">Vòng 1 — Khởi Động</h3>
+                  <div>
+                    <h3 className="font-bold text-slate-100 leading-tight">Vòng 1 — Khởi Động Thần Tốc</h3>
+                    <p className="text-blue-400 text-xs">5 câu hỏi lý luận cơ bản</p>
+                  </div>
                 </div>
                 <ul className="space-y-2 text-slate-300 leading-relaxed pl-9">
-                  <li className="flex items-start gap-2"><Zap className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Mỗi câu có <span className="text-white font-semibold ml-1">4 đáp án</span>, chọn 1 đáp án đúng.</li>
-                  <li className="flex items-start gap-2"><Clock className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Thời gian trả lời: <span className="text-white font-semibold ml-1">15 giây</span> mỗi câu.</li>
-                  <li className="flex items-start gap-2"><Trophy className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Trả lời đúng: <span className="text-green-400 font-semibold ml-1">+10 điểm</span>. Sai hoặc hết giờ: <span className="text-red-400 font-semibold ml-1">0 điểm</span>.</li>
-                  <li className="flex items-start gap-2"><Sparkles className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Trả lời nhanh nhận thêm <span className="text-amber-400 font-semibold ml-1">điểm thưởng tốc độ</span>.</li>
+                  <li className="flex items-start gap-2"><Clock className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Thời gian: <span className="text-white font-semibold ml-1">15 giây</span> mỗi câu.</li>
+                  <li className="flex items-start gap-2"><Zap className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />Trả lời đúng nhận <span className="text-green-400 font-semibold ml-1">điểm tốc độ</span> — càng nhanh càng nhiều điểm.</li>
+                  <li className="flex items-start gap-2"><Flame className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />Trả lời đúng liên tiếp kích hoạt <span className="text-amber-400 font-semibold ml-1">Chuỗi Streak 🔥</span> tăng điểm thưởng!</li>
                 </ul>
               </div>
 
@@ -742,27 +761,22 @@ export default function PlayPage() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">2</div>
-                  <h3 className="font-bold text-slate-100">Vòng 2 — Tăng Tốc</h3>
+                  <div>
+                    <h3 className="font-bold text-slate-100 leading-tight">Vòng 2 — Bàn Tròn Chiến Lược</h3>
+                    <p className="text-amber-400 text-xs">5 tình huống lịch sử &amp; thời đại</p>
+                  </div>
                 </div>
                 <ul className="space-y-2 text-slate-300 leading-relaxed pl-9">
-                  <li className="flex items-start gap-2"><Flame className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />Câu hỏi khó hơn, thời gian rút ngắn còn <span className="text-white font-semibold ml-1">10 giây</span>.</li>
-                  <li className="flex items-start gap-2"><Trophy className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />Trả lời đúng: <span className="text-green-400 font-semibold ml-1">+20 điểm</span> cộng thêm điểm tốc độ.</li>
-                  <li className="flex items-start gap-2"><Shield className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />Điểm của cả khối được <span className="text-amber-400 font-semibold ml-1">cộng dồn</span> theo đóng góp từng thành viên.</li>
-                </ul>
-              </div>
-
-              <div className="border-t border-slate-800" />
-
-              {/* Vòng 3 */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">3</div>
-                  <h3 className="font-bold text-slate-100">Vòng 3 — Chung Kết</h3>
-                </div>
-                <ul className="space-y-2 text-slate-300 leading-relaxed pl-9">
-                  <li className="flex items-start gap-2"><Award className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />Câu hỏi tổng hợp với độ khó cao nhất, thời gian <span className="text-white font-semibold ml-1">8 giây</span>.</li>
-                  <li className="flex items-start gap-2"><Trophy className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />Trả lời đúng: <span className="text-green-400 font-semibold ml-1">+30 điểm</span>.</li>
-                  <li className="flex items-start gap-2"><Sparkles className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />Khối có tổng điểm cao nhất sau 3 vòng <span className="text-amber-400 font-semibold ml-1">giành chiến thắng</span>!</li>
+                  <li className="flex items-start gap-2"><Clock className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />Thời gian: <span className="text-white font-semibold ml-1">60 giây</span> mỗi câu — đủ thời gian bàn luận nhóm.</li>
+                  <li className="flex items-start gap-2"><Shield className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />Câu hỏi phức tạp về tình huống lịch sử, đòi hỏi tư duy đội nhóm.</li>
+                  <li className="flex items-start gap-2 p-2 rounded-lg bg-amber-950/50 border border-amber-700/60">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />
+                    <span>
+                      <span className="text-amber-300 font-bold">⚡ COMBO ĐỒNG THUẬN x2 ĐIỂM!</span>
+                      <br />
+                      <span className="text-slate-400 text-xs">Khi <strong className="text-slate-200">cả 5 thành viên</strong> trong khối cùng chọn đúng đáp án → điểm của cả khối được <strong className="text-amber-400">nhân đôi</strong>!</span>
+                    </span>
+                  </li>
                 </ul>
               </div>
 
@@ -776,6 +790,7 @@ export default function PlayPage() {
                   <li>• Sau khi chọn, <strong className="text-slate-300">không thể thay đổi</strong> câu trả lời.</li>
                   <li>• Điểm khối = tổng điểm của tất cả thành viên trong khối.</li>
                   <li>• Kết quả từng câu hiển thị ngay sau khi hết thời gian.</li>
+                  <li>• Mỗi khối tối đa <strong className="text-slate-300">5 thành viên</strong> — khối đầy sẽ bị khóa.</li>
                 </ul>
               </div>
 
