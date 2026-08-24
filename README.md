@@ -5,6 +5,7 @@
 > **Công nghệ:** Next.js 14 (App Router) + TypeScript + Tailwind CSS + Web Audio Synth + Firebase Realtime DB (Hỗ trợ Local Fallback Sync)  
 
 ---
+<img width="2559" height="1396" alt="image" src="https://github.com/user-attachments/assets/746f8865-7dca-4de8-b495-2a41083d4e2c" />
 
 ## ✨ TÍNH NĂNG NỔI BẬT
 
