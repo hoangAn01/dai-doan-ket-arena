@@ -127,13 +127,17 @@ export default function PlayPage() {
   // Xử lý trả lời câu hỏi
   const handleAnswer = async (index: number) => {
     if (!room || !playerId || room.status !== 'QUESTION') return;
-    if (currentPlayer?.lastAnswer !== undefined || selectedAnswer !== null) return;
+    const isAnsweredForThisQ =
+      selectedAnswer !== null ||
+      (currentPlayer?.lastAnswer !== undefined &&
+        currentPlayer?.lastAnswerQuestionIndex === room.currentQuestionIndex);
+    if (isAnsweredForThisQ) return;
 
     setSelectedAnswer(index);
     sound.playClick();
 
-    const timeUsed = (Date.now() - room.questionStartTime) / 1000;
-    const res = await submitAnswer(pin, playerId, index, timeUsed);
+    const timeUsed = Math.max(0.5, (Date.now() - room.questionStartTime) / 1000);
+    const res = await submitAnswer(pin, playerId, room.currentQuestionIndex, index, timeUsed);
 
     if (res.isCorrect) {
       sound.playCorrect();
@@ -479,10 +483,12 @@ export default function PlayPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3.5 mb-3 sm:mb-4">
               {currentQ.options.map((opt, idx) => {
                 const labels = ['A', 'B', 'C', 'D'];
+                const isAnsweredForThisQ =
+                  currentPlayer?.lastAnswer !== undefined &&
+                  currentPlayer?.lastAnswerQuestionIndex === room.currentQuestionIndex;
                 const isSelected =
-                  selectedAnswer === idx || currentPlayer.lastAnswer === idx;
-                const hasAnswered =
-                  selectedAnswer !== null || currentPlayer.lastAnswer !== undefined;
+                  selectedAnswer === idx || (isAnsweredForThisQ && currentPlayer.lastAnswer === idx);
+                const hasAnswered = selectedAnswer !== null || isAnsweredForThisQ;
 
                 return (
                   <button
@@ -509,7 +515,9 @@ export default function PlayPage() {
               })}
             </div>
 
-            {(selectedAnswer !== null || currentPlayer.lastAnswer !== undefined) && (
+            {(selectedAnswer !== null ||
+              (currentPlayer?.lastAnswer !== undefined &&
+                currentPlayer?.lastAnswerQuestionIndex === room.currentQuestionIndex)) && (
               <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-700 text-center text-slate-200 text-xs sm:text-sm font-medium shadow-md animate-in fade-in">
                 ✓ Đã gửi đáp án · Đang đợi quản trò công bố kết quả...
               </div>
@@ -522,7 +530,9 @@ export default function PlayPage() {
            ========================================================================= */}
         {currentPlayer && room && room.status === 'REVEAL' && currentQ && (
           <div className="max-w-2xl w-full mx-auto p-6 sm:p-8 rounded-3xl academic-card border-slate-700/80 bg-slate-900/90 text-center shadow-2xl animate-in zoom-in-95 duration-200">
-            {currentPlayer.isCorrect ? (
+            {(currentPlayer.lastAnswerQuestionIndex === room.currentQuestionIndex
+              ? currentPlayer.isCorrect
+              : selectedAnswer === currentQ.correctIndex) ? (
               <>
                 <div className="w-14 h-14 rounded-full bg-emerald-950/70 border border-emerald-500 flex items-center justify-center mx-auto mb-3 text-2xl shadow-lg">
                   ✓

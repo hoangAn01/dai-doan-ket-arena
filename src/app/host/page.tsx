@@ -33,6 +33,7 @@ import {
   createInitialRoom,
   saveRoomState,
   subscribeToRoom,
+  subscribeToQuestionAnswers,
   startNextQuestion,
   revealAnswersAndScoreTeams,
   populateBotPlayers,
@@ -44,10 +45,12 @@ import {
   closeAndDestroyRoom,
   showLeaderboard,
 } from '@/lib/roomManager';
+import { PlayerAnswer } from '@/lib/types';
 
 export default function HostPage() {
   const [pin, setPin] = useState<string>('');
   const [room, setRoom] = useState<RoomState | null>(null);
+  const [questionAnswers, setQuestionAnswers] = useState<Record<string, PlayerAnswer>>({});
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [isEndModalOpen, setIsEndModalOpen] = useState(false);
   const botSimulatedRef = useRef<number>(-1);
@@ -92,6 +95,20 @@ export default function HostPage() {
     return () => unsubscribe();
   }, []);
 
+  // Lắng nghe bài nộp câu hỏi hiện tại thời gian thực
+  useEffect(() => {
+    if (!room?.pin || room.currentQuestionIndex === undefined) return;
+    setQuestionAnswers({});
+    const unsubscribe = subscribeToQuestionAnswers(
+      room.pin,
+      room.currentQuestionIndex,
+      (answers) => {
+        setQuestionAnswers(answers);
+      }
+    );
+    return () => unsubscribe();
+  }, [room?.pin, room?.currentQuestionIndex]);
+
   // Tự động cho bot trả lời khi câu hỏi mới bắt đầu
   useEffect(() => {
     if (
@@ -122,7 +139,7 @@ export default function HostPage() {
   const playersList = Object.values(room.players || {});
   const totalPlayersCount = playersList.length;
   const botCount = playersList.filter((p) => p.isBot).length;
-  const answeredCount = playersList.filter((p) => p.lastAnswer !== undefined).length;
+  const answeredCount = Object.keys(questionAnswers).length;
 
   const handlePopulateBots = async () => {
     sound.playClick();
@@ -164,6 +181,8 @@ export default function HostPage() {
 
   const handleTimeUpOrReveal = async () => {
     sound.playReveal();
+    // Chờ 500ms ân hạn để các gói tin gửi cuối cùng của mạng 4G kịp đến Firebase
+    await new Promise((resolve) => setTimeout(resolve, 500));
     const updated = await revealAnswersAndScoreTeams(room.pin);
     if (updated) setRoom(updated);
   };
@@ -189,9 +208,9 @@ export default function HostPage() {
   };
 
   const answerCounts = [0, 0, 0, 0];
-  playersList.forEach((p) => {
-    if (p.lastAnswer !== undefined && p.lastAnswer >= 0 && p.lastAnswer < 4) {
-      answerCounts[p.lastAnswer]++;
+  Object.values(questionAnswers).forEach((ans) => {
+    if (ans.answerIndex >= 0 && ans.answerIndex < 4) {
+      answerCounts[ans.answerIndex]++;
     }
   });
 

@@ -21,6 +21,15 @@ export interface TeamInfo {
   targetCount: number;
 }
 
+export interface PlayerAnswer {
+  questionIndex: number;
+  answerIndex: number;
+  timeUsed: number;
+  points: number;
+  isCorrect: boolean;
+  submittedAt: number;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -28,6 +37,7 @@ export interface Player {
   score: number;
   streak: number;
   lastAnswer?: number; // 0, 1, 2, 3
+  lastAnswerQuestionIndex?: number;
   lastAnswerTime?: number; // timestamp in ms
   isCorrect?: boolean;
   pointsEarned?: number;
@@ -72,5 +82,6 @@ export interface RoomState {
     }
   >;
   players: Record<string, Player>;
+  answers?: Record<number, Record<string, PlayerAnswer>>;
   lastUpdated?: number;
 }
